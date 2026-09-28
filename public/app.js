@@ -1129,17 +1129,17 @@ function bonzi(colorurl,left,top,property){
 	
 	if(ticks > 0){
 	  let hatCanvas = document.getElementById('hat'+(ticks)+'_'+localId);
-      if(hatCanvas){
+     /* if(hatCanvas){
 		let hatCtx = hatCanvas.getContext('2d');
 		ctx.font = "25px Arial";
 		ctx.fillText(property.coins,100,100);
 		ctx.drawImage(sprite_bonzicoin, 150, 100, 32, 32);
-	  }
+	  }*/
 	}
 	else {
-		ctx.font = "25px Arial";
+		/*ctx.font = "25px Arial";
 		ctx.fillText(property.coins,100,100);
-		ctx.drawImage(sprite_bonzicoin, 150, 100, 32, 32);
+		ctx.drawImage(sprite_bonzicoin, 150, 100, 32, 32);*/
 	}
   };
 
