@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>BonziWORLD 2</title>
+  <title>BonziWORLD.kr</title>
   <meta charset="utf-8" />
   <meta content="">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
@@ -28,7 +28,7 @@
 <img src="./img/bonzi/bcn.png" style="display:none;">
 <img src="./img/bonzi/smile.png" style="display:none;">
 <img src="./img/bonzi/pope.png" style="display:none;">
-
+<img src="./img/desktop/icons/bonzicoin.png" id="sprite_bonzicoin"  style="display:none;">
   <div id="content">
 
     <div id="room_info">
@@ -50,15 +50,18 @@
       <img src="/img/desktop/extras_slide.png" id="extras_slide">
       <img src="/img/desktop/infobubble.png" id="info_icon" width="14" height="14" style="user-select:none;position:relative;left:-5px;top:4px;">
     </div>
-	
+	<div id="bonzicoins_icon" class="icon" style="z-index:999; background-image: url(./img/desktop/icons/bonzicoin.gif);position:absolute;top:20px;left:unset;right:17.5%;">
+      <p class="icon_label" style="margin-top:35px;">BonziCOINS Menu</p>
+    </div>
     <div class="icon_bar">
+	<div id="bonzi_log" class="icon" style=" background-image: url(./img/desktop/icons/bonzi_log.png);">
+      <p class="icon_label">Bonzi Log</p>
+    </div>
+	<div id="brk"></div>
     <div id="my_bonzi" class="icon" style=" background-image: url(./img/desktop/icons/mybonzi.png);">
       <p class="icon_label">My Settings</p>
     </div>
-    <div id="brk"></div>
-    <div id="bonzi_log" class="icon" style=" background-image: url(./img/desktop/icons/bonzi_log.png);">
-      <p class="icon_label">Bonzi Log</p>
-    </div>
+    
 	<div id="brk"></div>
 	<div id="media_upload" class="icon" style="background-image: url('./img/desktop/icons/media_upload.png');">
   		<p class="icon_label">Images And Videos</p>
@@ -105,28 +108,65 @@
 		</div>
 	</div>
   
-
+	
     <div id="page_login" class="page">
-      <div id="login_apps" class="app_showcase"><img height="30" src="/img/app/ie.gif"></img><!--<img src="/img/app/desktop.png"></img>--></div>
-      <div id="login_readme">
+	  <div style="background:black;width:100%;height:100%;z-index:999999;display:flex;justify-content:center;align-items:center;gap:30px;" id="initSetup"></div>
+      <div id="login_apps" class="app_showcase"><!--<img src="/img/app/desktop.png"></img>--></div>
+	  <div id="login_sectionOOBE" style="width: 100%; height: 100%; overflow: hidden; background: rgba(0, 0, 0, 0.1); display: none; position: absolute; left: 0px; top: 0px;" bis_skin_checked="1">
+	    <div style="background:black;width:100%;height:100%;display:block;position:absolute;top:0px;left:0px;z-index: 999998;" id="oobeplaybg"></div>
+		<img src="" id="oobeplayback" width="500" height="480" style="display: none; z-index: 999999; position: absolute; left: calc(50% - 323.958px); top: 0px; width: 647.917px; height: 622px;">
+		<div style="display:flex;gap:10px;position:absolute;top:20px;left:20px;z-index:9999" bis_skin_checked="1">
+			<img src="./favicons/favicon.ico" height="60" width="auto">
+			<img src="./img/desktop/logo.png" height="60" width="auto">
+			
+		</div>	
+		<img src="./img/desktop/icons/helpnigga.png" width="96" height="256" style="position:absolute;right:100px;top:250px;" id="qmark">
+		<div id="qmark_speak" style="display:none;position:absolute;right:50px;top:337px;max-width:177px;width:177px;height:107px;overflow-y:auto;background-image:url(./img/desktop/icons/helpniggaspeak.png);color:white;font-family:'WinXP';font-size:14px;background-size: 100% 100%;transform: scaleY(-1);display: block;">
+			<p id="qmark_dialogue" style="transform: scaleY(-1);margin-top: 50px;margin-left: 10px;">I'm too old for this shit.</p>		
+		</div>
+		<div style="position:absolute;right:100px;bottom:50px;color:white;display:flex;gap:5px;" bis_skin_checked="1">
+		Next 
+		<div class="go_selection" id="oobe_next" bis_skin_checked="1"></div>
+		</div>
+<div style="position:absolute;top: 125px;left:100px;/* font-family: sans-serif; *//* font-size: 35px; *//* font-weight: bolder; */color: white;" bis_skin_checked="1"><h1="" bis_skin_checked="1" style="
+    font-family: sans-serif;
+    font-size: 35px;
+    font-weight: bolder;
+    color: white;
+    text-shadow: 3px 3px 2px rgba(32,0,108,0.5);
+" id="title_oobe">Welcome to BonziWORLD 
+    
+</h1="">
+<br><br><br>
+<div id="oobe_cont">
+<p>Welcome to a half-assed excuse for a chatroom with lots of "fun" to be had.</p><br>
+<p>Save your preferences for BonziWORLD and any passwords through this "guided" "setup".</p>
+</div><p style="
+    margin-left: -75px;margin-top:200px;
+">If you're experiencing signs of sentience, click Next.</p></div>
+	  </div> 
+	  <div id="login_sectionUSER" style="width:100%;height:100%;overflow-x:hidden;overflow-y:hidden;display:none;">
+		<div id="login_readme">
         
-        Make sure to check out the <a id="readme" href="readme.html" target="_blank">README</a> before use.<br>
+			Make sure to check out the <a id="readme" href="readme.html" target="_blank">README</a> before use.<br>
         
-        <hr>
+			<hr>
         
-        <p style="font-size: 20px;"><a style="font-family:'WinXP';" href="changelog.html">Changelog/Updates</a></p></div>
+			<p style="font-size: 20px;"><a style="font-family:'WinXP';" href="changelog.html">Changelog/Updates</a></p>
+		</div>
       
-      <div id="login_card">
-        <input id="login_name" type="text" placeholder="Nickname">
-		<input id="login_room" type="text" placeholder="Room ID (Optional)">
-		<div id="login_go"></div><div id="login_error" style="display:none;"></div>
-        <div id="login_error" style="display:none"></div>
-      </div>
-      <div id="login_load">welcome</div>
-      <div id="login_version" style="font-size: 20px;">
-        BW XP:
-        1.4.0 Beta
-      </div>
+		<div id="login_card">
+			<input id="login_name" type="text" placeholder="Nickname">
+			<input id="login_room" type="text" placeholder="Room ID (Optional)">
+			<div id="login_go"></div><div id="login_error" style="display:none;"></div>
+			<div id="login_error" style="display:none"></div>
+		</div>
+		<div id="login_load">welcome</div>
+		<div id="login_version" style="font-size: 20px;">
+			BW.KR beta<br>
+			1.7.0 Codename "Reform"
+		</div>
+		</div>
     </div>
 
     <div id="page_error" class="window" style="display:none;">

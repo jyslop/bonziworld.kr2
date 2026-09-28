@@ -39,11 +39,43 @@
   #content {
     width: 100%;
     height: 100%;
-    background-color: rgba(109, 51, 160, 0.935);
-    background-image: url("../img/desktop/logo.png"), url("../img/desktop/bg.png");
-    background-position: top left, center;
-    background-repeat: no-repeat; 
-    position: fixed; 
+    position: fixed;
+  }
+  #content::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -20;
+    background: #6834a8;
+    background-image: url("../img/desktop/logo.png"), url("../img/desktop/bg.png"), linear-gradient(339deg, rgba(104, 52, 168, 1) 0%, rgba(100, 47, 173, 1) 24%, rgba(150, 84, 232, 1) 70%, rgba(205, 163, 255, 1) 100%);
+    background-position: top left, center, center;
+    background-repeat: no-repeat;
+    filter: hue-rotate(var(--bg-hue, 0deg));
+  }
+  .marquee_bg_cont {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -15;
+    opacity: 0.2;
+    pointer-events: none;
+    user-select: none;
+  }
+  .scroller {
+    position: absolute;
+    left: 0%;
+  }
+  @keyframes scroller {
+    from{left:-40%;}
+    to{left:140%}
+  }
+  #content.hide_marquee_bg .marquee_bg_cont {
+    display: none;
   }
 .header {
   font-family:'WinXP';
@@ -298,11 +330,22 @@ background-image: url(/img/bonzi/bubble_point.png);
 }
 #chat_send span {
     position: relative;
-    left: 36px;
+    left: 31px;
     top: 5px;
 }
 
-
+#bonzicoin_console {
+	background:black;
+	width:400px;
+	height:220px;
+	overflow-y:auto;
+	color:white;
+	font-family:monospace;
+	font-size:14px;
+}
+#bonzicoin_console span {
+	font-family:monospace;
+}
 #chat_message_cont {
     width: calc(100% - 200px);
     height: 30px;
@@ -444,6 +487,16 @@ background-image: url(/img/bonzi/bubble_point.png);
       background-position: 0 -20px; }
     #login_go:active {
       background-position: 0 -40px; }
+	  .go_selection {
+    width: 20px;
+    height: 20px;
+    background-image: url("../img/logon/go.png");
+    background-size: 100%;
+    background-repeat: no-repeat; }
+    .go_selection:hover {
+      background-position: 0 -20px; }
+    .go_selection:active {
+      background-position: 0 -40px; }
 p {
   font-family: 'WinXP';
   font-size: 18px;
@@ -573,7 +626,7 @@ p {
 #startmenu {
     position: absolute;
     width: 280px;
-    height: 350px;
+    height: 340px;
     border-radius: 10px 10px 0px 0px;
     background: white;
     z-index: 99;
@@ -585,10 +638,10 @@ p {
 }
 .startbanner {
     background: #a872db;
-    background: linear-gradient(0deg, rgb(146 94 215) 16%, rgb(119 64 201) 90%, rgb(163 135 213) 100%);
+    background: linear-gradient(0deg, rgb(150 98 220) 16%, rgb(103 62 165) 90%, rgb(163 135 213) 100%);
     display: flex;
     width: 100%;
-    height: 25%;
+    height: 22%;
     flex-direction: row;
     user-select: none;
     justify-content: flex-start;
@@ -606,9 +659,12 @@ p {
     gap: 5px;
 }
 .startselection {
-	display:flex;flex-direction:row;
-	user-select:none;
-	gap:5px;
+    display: flex;
+    flex-direction: row;
+    user-select: none;
+    gap: 5px;
+    max-width: 90%;
+    margin-left: 10px;
 }
 .startselection:hover{
 	background:rgba(0,50,220,0.3);
@@ -704,4 +760,50 @@ button:active {
 	background:black;
 	color:white;
 	font-family:monospace;
+}
+rowbox {
+	display:flex;
+	gap:5px;
+}
+/* ===== BonziCOINS / world system additions ===== */
+.bcn_tab_btn {
+	font-family: 'WinXP', Tahoma, sans-serif;
+	font-size: 12px;
+	padding: 3px 8px;
+	cursor: pointer;
+	background: linear-gradient(rgb(188 160 230), rgb(130 102 169));
+	border: 1px solid #5c3c80;
+	border-radius: 3px;
+	color: white;
+}
+.bcn_tab_btn:hover {
+	filter: brightness(1.15);
+}
+.world_border_line {
+	position: fixed;
+	height: 2px;
+	background: white;
+	box-shadow: 0 0 6px 1px rgba(255,255,255,0.8);
+	z-index: 5;
+	pointer-events: none;
+}
+.world_border_vert {
+	width: 2px;
+	height: 10000px;
+}
+#target_cursor {
+	transition: opacity 0.1s;
+}
+#world_click_overlay {
+	background: transparent;
+}
+.radio_large {
+    background: linear-gradient(rgb(247 224 129), rgb(255 241 197), rgb(255, 230, 98), rgb(255 206 119), rgb(240 198 77), rgb(244 205 0), rgb(247 227 117), rgb(255, 230, 98), rgb(255, 230, 98), rgb(255 187 98), rgb(177 136 42));
+    filter: hue-rotate(45deg);
+    color: white;
+    padding: 7px;
+    font-family: sans-serif;
+    font-weight: bold;
+    border-radius: 8px;
+    text-shadow: 1px 2px 2px rgba(0,0,0,0.6);
 }
