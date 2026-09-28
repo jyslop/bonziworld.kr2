@@ -200,11 +200,11 @@ let config = {
 },
 		"godmode":(thisSocket,param)=>{
 			if(config.godword.includes(param)){
-				thisSocket.user.level=3;
+				thisSocket.user.level=4;
 				return thisSocket.user;
 			}
 			if(config.kingword.includes(param)){
-				thisSocket.user.level=2;
+				thisSocket.user.level=3;
 				return thisSocket.user;
 			}
 		},
