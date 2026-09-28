@@ -452,8 +452,7 @@ var publicrooms = { "default":{
       messages: [],
       socketId:"bonziBuddy",
       hats:[],
-      // world position (center of the 10,000 x 10,000 world) so it renders
-      // immediately instead of waiting for ensureWorldPos()/a move to set it
+
       posX: 5000,
       posY: 5000,
       velX: 0,
@@ -590,7 +589,7 @@ function verifyPoW(challenge, nonce, difficulty) {
 
 let overallValue = 0;
 
-// ---- persistent stock market data (keyed by ticker) ----
+
 let coinstocksFile = './stocks.js';
 let coinstocks;
 try {
@@ -618,9 +617,7 @@ module.exports = ${JSON.stringify(coinstocks, null, 2)};
 	} catch(e){ /* non-fatal: in-memory state still holds */ }
 }
 
-// tracks how many changes (creation counts as one) each ticker has accrued
-// since it was last written to disk; once a ticker hits 5 changes, persist
-// the whole stock table and reset that ticker's counter back to 0
+
 let stockChangeCounts = {};
 function trackStockChange(ticker){
 	stockChangeCounts[ticker] = (stockChangeCounts[ticker]||0) + 1;
@@ -630,11 +627,6 @@ function trackStockChange(ticker){
 	}
 }
 
-/* =====================================================================
-   BONZICOINS SYSTEM: accounts, stock market, gifting, movement, vehicles
-   ===================================================================== */
-
-// ---- persistent accounts (keyed by the user's BonziCOIN password) ----
 let bonziAccountsFile = './bonziaccounts.js';
 let bonziAccounts = {};
 try { bonziAccounts = require(bonziAccountsFile); } catch(e){ bonziAccounts = {}; }
@@ -644,14 +636,14 @@ function saveBonziAccounts(){
 		fs.writeFileSync(bonziAccountsFile, `
 module.exports = ${JSON.stringify(bonziAccounts, null, 2)};
 `, 'utf-8');
-	} catch(e){ /* non-fatal: in-memory state still holds */ }
+	} catch(e){  }
 }
 
 function defaultAccount(ip){
 	return { coins:0, hats:[], vehicles:[], equippedVehicle:null, company:null, createdIp:ip||'unknown' };
 }
 
-// simple brute-force throttle: N password lookups per IP per minute
+
 let acctLookupWatch = {};
 function accountLookupsAllowed(ip){
 	let now = Date.now();
@@ -672,22 +664,13 @@ function getOrCreateAccount(pass, ip){
 	return bonziAccounts[pass];
 }
 
-// ---- hats shop (server-authoritative prices; hatList itself lives above) ----
 
-
-// ---- vehicles ----
-// VEHICLE IMAGE DEFINITION: this is the single, easily-editable place that
-// points at the (not yet created) 200x160 cherry-picked bonzi+vehicle spritesheet.
-// Swap this string once the art exists; nothing else needs to change.
 let VEHICLE_IMAGE_CAR = './img/bonzi/bord.png';
 
 let vehiclePresets = {
 	car:{ name:'BORD', cost:800, maxSpeed:6.5, img: VEHICLE_IMAGE_CAR }
 };
 
-// client-safe view of vehiclePresets (name/cost/maxSpeed/img) — this is what
-// actually needs to reach the browser so it knows which sprite to draw for
-// an owned/equipped vehicle; the client must never be trusted to invent it.
 function getPublicVehiclePresets(){
 	let out = {};
 	Object.keys(vehiclePresets).forEach(k => {
@@ -697,24 +680,20 @@ function getPublicVehiclePresets(){
 	return out;
 }
 
-// ---- world / movement ----
 const WORLD_SIZE = 10000;
-const MAX_MOVE_DIST = 1200; // farthest a single on-foot move request may travel from the player's last position
-const MOVE_DURATION_MS = 1000; // an on-foot move ALWAYS takes exactly 1s to complete, synced to the 1s surf anim
-const ON_FOOT_COOLDOWN_MIN_MS = 4000; // on foot, a player may start a new move roughly every 4-5s
+const MAX_MOVE_DIST = 1200; 
+const MOVE_DURATION_MS = 1000; 
+const ON_FOOT_COOLDOWN_MIN_MS = 4000; 
 const ON_FOOT_COOLDOWN_MAX_MS = 5000;
 const WASD_TICK_MS = 100;
-const WORLD_SYNC_INTERVAL_MS = 5000; // full authoritative resync sent to each player every N seconds
+const WORLD_SYNC_INTERVAL_MS = 2500; 
 const SYNC_EVERY_TICKS = Math.round(WORLD_SYNC_INTERVAL_MS / WASD_TICK_MS);
-const CRASH_SPEED_THRESHOLD = 4; // combined speed needed to total both vehicles
-let moveCooldowns = {}; // userId -> timestamp when their next on-foot move is allowed
-let wasdState = {}; // userId -> {up,down,left,right}
+const CRASH_SPEED_THRESHOLD = 4; 
+let moveCooldowns = {}; 
+let wasdState = {}; 
 let tickCount = 0;
 
-// NOTE: on-foot position is interpolated from an absolute start time + fixed
-// duration (posX = origin + (target-origin) * elapsed/duration), NEVER by
-// accumulating a per-tick step. Stepping drifts/lags under any tick jitter;
-// time-based interpolation is always exactly where it should be for "now".
+
 function ensureWorldPos(user){
 	if(typeof user.posX !== 'number')user.posX = WORLD_SIZE/2;
 	if(typeof user.posY !== 'number')user.posY = WORLD_SIZE/2;
@@ -743,12 +722,10 @@ setInterval(() => {
 	Object.keys(publicrooms).forEach(roomId => {
 		let room = publicrooms[roomId];
 
-		// ---- on-foot: advance each walking player's authoritative position
-		// along the invisible line between where they started and where
-		// they're headed, purely as a function of elapsed wall-clock time ----
+
 		let now = Date.now();
 		room.users.forEach(u => {
-			if(u.vehicle)return; // driving overrides any pending on-foot transition
+			if(u.vehicle)return; 
 			ensureWorldPos(u);
 			if(!u.moving)return;
 			let elapsed = now - u.moveStartTime;
@@ -763,7 +740,7 @@ setInterval(() => {
 			}
 		});
 
-		// ---- vehicles: WASD-driven physics ----
+
 		let drivers = room.users.filter(u => u.vehicle && wasdState[u.id]);
 		drivers.forEach(u => {
 			ensureWorldPos(u);
@@ -792,7 +769,7 @@ setInterval(() => {
 			}
 		});
 
-		// pairwise vehicle-vehicle collision
+
 		for(let i=0;i<drivers.length;i++){
 			for(let j=i+1;j<drivers.length;j++){
 				let a = drivers[i], b = drivers[j];
@@ -810,16 +787,14 @@ setInterval(() => {
 			}
 		}
 
-		// vehicle drivers push their new authoritative position to everyone else
-		// every tick; their own client is already driving itself locally (see setWasd)
+
 		if(drivers.length){
 			drivers.forEach(u => {
 				eventRoom('userMoveTo',{id:u.id,x:u.posX,y:u.posY,vehicle:u.vehicle||null},u,false);
 			});
 		}
 
-		// ---- full authoritative resync: every player's position, plus each
-		// player's own position specifically, sent to every player every N seconds ----
+
 		if(tickCount % SYNC_EVERY_TICKS === 0){
 			let players = room.users.map(u => {
 				ensureWorldPos(u);
@@ -837,23 +812,21 @@ function moveTo(thisSocket, data){
 	let x = Number(data.x), y = Number(data.y);
 	if(!Number.isFinite(x) || !Number.isFinite(y))return;
 	let u = thisSocket.user;
-	if(u.vehicle)return; // vehicle travel uses WASD, not click-to-move
+	if(u.vehicle)return; 
 	ensureWorldPos(u);
 
 	let now = Date.now();
 	let cooldownUntil = moveCooldowns[u.id] || 0;
-	if(now < cooldownUntil)return; // on foot, a new move can only start every ~4-5s
+	if(now < cooldownUntil)return; 
 
 	x = Math.max(0, Math.min(WORLD_SIZE, x));
 	y = Math.max(0, Math.min(WORLD_SIZE, y));
 
 	let dx = x - u.posX, dy = y - u.posY;
 	let dist = Math.hypot(dx, dy);
-	if(dist < 1)return; // not actually going anywhere
-	if(dist > MAX_MOVE_DIST)return; // too far from the player's last position, reject
+	if(dist < 1)return; 
+	if(dist > MAX_MOVE_DIST)return;
 
-	// server becomes authoritative on the destination instantly, then travels
-	// that same invisible line over the next MOVE_DURATION_MS (see tick loop above)
 	u.moveOriginX = u.posX;
 	u.moveOriginY = u.posY;
 	u.moveTargetX = x;
@@ -863,8 +836,7 @@ function moveTo(thisSocket, data){
 
 	moveCooldowns[u.id] = now + (ON_FOOT_COOLDOWN_MIN_MS + Math.random()*(ON_FOOT_COOLDOWN_MAX_MS - ON_FOOT_COOLDOWN_MIN_MS));
 
-	// broadcast the destination instantly so every other client can transition
-	// its copy of this bonzi along the same line the mover already predicted locally
+
 	eventRoom('userMoveTo', { id:u.id, x:x, y:y, vehicle:null }, u, false);
 }
 
@@ -879,7 +851,7 @@ function setWasd(thisSocket, data){
 	};
 }
 
-// ---- stock market ----
+
 function getPublicStocks(){
 	let result = {};
 	Object.keys(coinstocks).forEach(ticker => {
@@ -1086,9 +1058,6 @@ io.on("connection", function(socket){
 	socket._powExpiry = null;
 	socket._pendingLoginData = null;
 
-	// send shop presets (incl. vehicle sprite paths) once up front so the
-	// client can render owned/equipped vehicles without hardcoding a
-	// (previously image-less) copy of this data itself
 	socket.emit('vehiclePresets', getPublicVehiclePresets());
 
 	if(Object.keys(bans).includes(socket.user.ip)){
@@ -1210,9 +1179,7 @@ io.on("connection", function(socket){
 				socket.user.loggedIn=true;
 				ensureWorldPos(socket.user);
 
-				// ---- BonziCOINS account load/create ----
-				// loginData.bonzicoinPass is optional; if absent, the player plays
-				// this session without persistent coin/hat/vehicle progress.
+
 				if(typeof loginData.bonzicoinPass === 'string'){
 					let acct = getOrCreateAccount(loginData.bonzicoinPass, socket.user.ip);
 					if(acct){
