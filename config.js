@@ -334,7 +334,7 @@ let config =  {
 		},
 		"glow":(thisSocket,param)=>{
 			if(thisSocket.user.level > 1){
-				thisSocket.user = updateUser(thisSocket.user,{color:"./img/bonzi/glow.webp",tag:"<img src='/img/desktop/icons/wrench_antenna.png' class='tagicon'>"},true);
+				thisSocket.user = updateUser(thisSocket.user,{color:"./img/bonzi/glow.png",tag:"<img src='/img/desktop/icons/wrench_antenna.png' class='tagicon'>"},true);
 				return thisSocket.user;
 			}
 		},
