@@ -1972,6 +1972,13 @@ setInterval(unfuck,5000);
     if(!thisbonzi.mute)newLog({name:thisbonzi.name, msg:newMsg, quote: data.quote || null});
     thisbonzi.talk({text: newMsg, quote: data.quote || null});
   });
+  socket.on("youtube", (data) => {
+	  let thisbonzi = screenbonzis({id: data.by});
+	  thisbonzi.talk({
+		  text:`- <iframe width="560" height="315" src="https://www.youtube.com/embed/${data.videoCode}?si=yYNozeY4jDLWoKQJ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
+		  quote:null
+	  });
+  });
   socket.on("userEvent", (data) => {
 	  let thisbonzi = screenbonzis({id:data.id});
 	  let eventList = data.events;
