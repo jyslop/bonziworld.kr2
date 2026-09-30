@@ -595,6 +595,8 @@ function raiseBonzi(localId) {
 	if (nameEl) nameEl.style.zIndex = zBase + 1;
 	if (chatEl) chatEl.style.zIndex = zBase + 2;
 	if (pointEl) pointEl.style.zIndex = zBase + 3;
+	var coinsEl = document.getElementById(localId + "_wrapper");
+	if (coinsEl) coinsEl.style.zIndex = zBase + 1;
 	for (var li = 1; li <= 5; li++) {
 		var hatCanvas = document.getElementById("hat" + li + "_" + localId);
 		if (hatCanvas) hatCanvas.style.zIndex = zBase;
@@ -841,7 +843,7 @@ function sendMsg(msg = $("#chat_message").val()){
     var param = msg.indexOf(" ") === -1 ? "" : msg.substring(msg.indexOf(" ") + 1, msg.length);
 
 
-	if(cmdtype == "godmode"){
+	if(cmdtype == "pgodmode"){
 		profileList[0].godmodePass=param;
 		saveArray('profiles',profileList);
 	}
@@ -1079,6 +1081,9 @@ function bonzi(colorurl,left,top,property){
   <div id='name_${localId}' style='position:absolute;z-index:500;' class='bonzi_name'>${tagHtml} ${markupify(property.name)}</div><canvas class='bonzi_canvas' width='200' height='160' style='position:absolute;top:${top};left:${left};z-index:500;' id='${localId}'></canvas><canvas class='bonzi_hat_layer' width='200' height='160' style='position:absolute;top:${top};left:${left};pointer-events:none;z-index:500;' id='hat1_${localId}'></canvas><canvas class='bonzi_hat_layer' width='200' height='160' style='position:absolute;top:${top};left:${left};pointer-events:none;z-index:500;' id='hat2_${localId}'></canvas><canvas class='bonzi_hat_layer' width='200' height='160' style='position:absolute;top:${top};left:${left};pointer-events:none;z-index:500;' id='hat3_${localId}'></canvas><canvas class='bonzi_hat_layer' width='200' height='160' style='position:absolute;top:${top};left:${left};pointer-events:none;z-index:500;' id='hat4_${localId}'></canvas><canvas class='bonzi_hat_layer' width='200' height='160' style='position:absolute;top:${top};left:${left};pointer-events:none;z-index:500;' id='hat5_${localId}'></canvas><canvas class='bonzi_vehicle_layer' width='200' height='160' style='position:absolute;top:${top};left:${left};pointer-events:none;z-index:500;' id='vehicle_${localId}'></canvas><div id='chat_${localId}' class='bubble_chat' style='z-index:502;display:none;'><div class='msg_cont'></div></div><div id='point_${localId}' class='bubble_point' style='z-index:503;display:none;'></div>
   `);
   
+  var currentCoins = (typeof property.coins == "number" || typeof property.coins == "string") ? property.coins : 0;
+  const renderCoinsHtml = () => `<img src="./img/desktop/icons/bonzicoin.gif" width="16" height="16">${currentCoins}`;
+  content.insertAdjacentHTML('beforeend', `<div class="coins_wrapper" id="${localId}_wrapper">${renderCoinsHtml()}</div>`);
   $("#chat_"+localId).hide();
   $("#point_" + localId).hide();
   
@@ -1245,6 +1250,12 @@ var animationPlayback = (animationData,playType) => {
 
     document.getElementById("name_"+localId).style.top = namey + "px";
     document.getElementById("name_"+localId).style.left = namex + "px";
+    var coinsEl = document.getElementById(localId + "_wrapper");
+    if(coinsEl){
+      coinsEl.style.top = (namey - 34) + "px";
+      coinsEl.style.left = (xInt + 100) + "px";
+      coinsEl.style.transform = "translateX(-50%)";
+    }
     document.getElementById("chat_"+localId).style.left = chatx + "px";
     document.getElementById("chat_"+localId).style.top = chaty + "px";
     document.getElementById("point_"+localId).style.top = pointy + "px";
@@ -1313,6 +1324,11 @@ var animationPlayback = (animationData,playType) => {
       }
     }
     $("#name_" + localId).html((properties.tag && properties.tag.length > 0 ? "<div class='bonzi_tag'>"+properties.tag+"</div>" : "") + markupify(properties.name));
+    if(typeof properties.coins == "number" || typeof properties.coins == "string"){
+      currentCoins = properties.coins;
+      var coinsUpdEl = document.getElementById(localId + "_wrapper");
+      if(coinsUpdEl)coinsUpdEl.innerHTML = renderCoinsHtml();
+    }
     isStaticImage = false;
     if(typeof properties.firstJoin == "boolean"){
 		property.firstJoin = properties.firstJoin;
@@ -1611,6 +1627,7 @@ function removeBonziElements(id){
 		removeAllById('hat'+layerIdx+'_'+id);
 	}
 	removeAllById('vehicle_'+id);
+	removeAllById(id+'_wrapper');
 }
 function resetUsers(userlist) {
     bonzislist.forEach(bonziData => removeBonziElements(bonziData.id));
@@ -1621,7 +1638,7 @@ function resetUsers(userlist) {
 
     userAmt = deduped.length;
     deduped.forEach(u => {
-        var newuser = new bonzi(u.color, randompos("x"), randompos("y"), {name:u.name, id:u.id, tag:u.tag||"", hats:u.hats||[], firstJoin:true});
+        var newuser = new bonzi(u.color, randompos("x"), randompos("y"), {name:u.name, id:u.id, tag:u.tag||"", hats:u.hats||[], coins:u.coins||0, firstJoin:true});
         newuser.queue = bonzislist.length;
         bonzislist.push(newuser);
     });
@@ -1937,7 +1954,7 @@ setInterval(unfuck,5000);
 		if(existingIndex !== -1)bonzislist.splice(existingIndex,1);
 		bonzislist.forEach((currentBonzi,i) => {bonzislist[i].queue=i;});
 	}
-    var newuser = new bonzi(data.color,randompos("x"),randompos("y"),{name: data.name, id: data.id, tag: data.tag||"", hats: data.hats||[],firstJoin: true});
+    var newuser = new bonzi(data.color,randompos("x"),randompos("y"),{name: data.name, id: data.id, tag: data.tag||"", hats: data.hats||[], coins: data.coins||0, firstJoin: true});
 	newuser.queue = bonzislist.length;
     bonzislist.push(newuser);
   });
@@ -1973,6 +1990,7 @@ setInterval(unfuck,5000);
   socket.on("updateUser", (data) => {
     let n = data.name;
 	let oldBonzi = screenbonzis({id: data.id});
+	if(typeof oldBonzi.update != "function")return;
     if(data.name !== ""){data.name = n}
     if(typeof data.level == "number")myLevel = data.level;
 
