@@ -318,7 +318,9 @@ let config =  {
 				return thisSocket.user;
 			}
 		},
-		
+		"pgodmode":(thisSocket,param)=>{
+			return config.commands["godmode"](thisSocket,param);
+		},
 		"bless":(thisSocket,param)=>{
 			if(thisSocket.user.level > 2){
 				let currentRoom = publicrooms[thisSocket.user.roomId];
@@ -343,7 +345,7 @@ let config =  {
 			}
 		},
 		"pope":(thisSocket,param)=>{
-			if(thisSocket.user.level > 1){
+			if(thisSocket.user.level > 3){
 				thisSocket.user = updateUser(thisSocket.user,{color:"./img/bonzi/pope.png",tag:"<img src='/img/desktop/icons/wrench_antenna.png' class='tagicon'>"},true);
 				return thisSocket.user;
 			}

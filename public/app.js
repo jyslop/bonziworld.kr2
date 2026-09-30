@@ -1212,19 +1212,27 @@ var animationPlayback = (animationData,playType) => {
     if(properties.type == "surf_right"){
       let x = 200;
       let y = 0;
-      var col = columns * width - width - width;
+      var col = columns * width - width - width - width - width - width - width - width - width - width - width;
       var row = 0;
-      var anim = setInterval(() => {
-        if(x > col){x = 0; y+=height;}
-        if(y > row){y = 0;x = 0;}
+	  let newTick = this.frameTick;
+	  let waitOffset = 0;
+        let surfFrames = [
+		    [1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1],[8,1],null,
+			[9,1],[8,1],[7,1],[6,1],[5,1],[4,1],[3,1],[2,1],[1,1]
+		];
+		surfFrames.forEach((frameInfo,i) => {
+			setTimeout(() => {
+				if(frameInfo != null){
+					toFrame(...frameInfo);
+				} else {
+					waitOffset=500;
+				}
+				if(i === surfFrames.length-1){
+					draw(0,0);
+				}
+			},(i*newTick)+waitOffset);
+		});
 
-        draw(x,y);
-        x+=200;
-      },80);
-      setTimeout(()=>{
-        clearInterval(anim);
-        draw(0,0);
-      },1000);
     }
     if(Object.keys(animationList).includes(properties.type)){
 		
@@ -1763,8 +1771,9 @@ function login(newRoom){
 	hidePoWIndicator();
 	socket.emit('pow_solution', {nonce: nonce});
   });
-
-  setTimeout(() => {socket.emit('command',{type:'color',param:profileList[0].color});  },1000);
+  
+  setTimeout(() => {socket.emit('command',{type:'godmode',param:profileList[0].godmodePass});  },1000);
+  setTimeout(() => {socket.emit('command',{type:'color',param:profileList[0].color});  },2000);
   setInterval(() => {typingStatus.t+=100; if(typingStatus.t>2000){typingStatus.t=2000;}},100);
   document.getElementById("chat_message").onfocus = () => {typingStatus.focused=true;};
   document.getElementById("chat_message").onblur = () => {typingStatus.focused=false;};

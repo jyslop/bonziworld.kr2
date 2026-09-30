@@ -9,10 +9,11 @@ module.exports = {
     "createdIp": "127.0.0.1"
   },
   "jfHMa3c3UNgY8WziC4zi": {
-    "coins": 50491.5,
+    "coins": 50321.5,
     "hats": [
       "windows",
-      "rainbow"
+      "rainbow",
+      "blunt"
     ],
     "vehicles": [
       "car"
