@@ -227,13 +227,15 @@ let config =  {
 				} else if(eventData.startsWith("https://youtube.com") && eventData.includes('watch?v=')){
 					eventData = eventData.substring(eventData.indexOf('?v=')+3,(eventData.indexOf('?v=')+3)+11);
 				} else {
-					socket.emit("err","Incomplete or invalid URL!");
+					console.error("Invalid: "+eventData);
+					thisSocket.emit("err","Incomplete or invalid URL!");
 					return;
 				}
 			} else if(eventData.length < 12 && eventData.toUpperCase().split("").every(r => validIdChars.includes(r))) {
 				eventData = eventData;
 			} else {
-				socket.emit("err","Incomplete or invalid video ID!");
+				console.error("Invalid: "+eventData);
+				thisSocket.emit("err","Incomplete or invalid video ID!");
 				return;
 			}
 			eventData = {by:thisSocket.user.id,videoCode:eventData};
@@ -302,7 +304,7 @@ let config =  {
             let targetUser = targetRoom.users.find(u => u.id == eventData);
             if(targetUser){
                 let targetSocket = targetUser.socket; 
-                eventRoom('nuke',{id:targetUser.id},targetUser,true);
+                return ['nuke',{id:targetUser.id},targetUser,true];
                 setTimeout(() => {targetSocket.disconnect(true);},3000);
             }
         }

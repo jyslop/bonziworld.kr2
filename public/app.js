@@ -1984,7 +1984,7 @@ setInterval(unfuck,5000);
   socket.on("youtube", (data) => {
 	  let thisbonzi = screenbonzis({id: data.by});
 	  thisbonzi.talk({
-		  text:`- <iframe width="560" height="315" src="https://www.youtube.com/embed/${data.videoCode}?si=yYNozeY4jDLWoKQJ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
+		  text:`- <iframe width="200" height="200" src="https://www.youtube.com/embed/${data.videoCode}?si=yYNozeY4jDLWoKQJ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
 		  quote:null
 	  });
   });
@@ -2172,7 +2172,7 @@ function openBonziCoinsMenu(){
 		width:420, height:480,
 		html:`
 		<div id="bonzicoins_tabbar" style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:6px;">${tabBtns}</div>
-		<div id="bonzicoins_content" style="background: #9b66e9;width:100%;height:400px;color: white;text-shadow: 2px 2px rgba(0,0,0,0.4);overflow-y:auto;overflow-x:hidden;"></div>
+		<div id="bonzicoins_content" style="background: url(./img/misc/room_overlay.png);width:100%;height:400px;color: white;text-shadow: 2px 2px rgba(0,0,0,0.4);overflow-y:auto;overflow-x:hidden;"></div>
 		`
 	});
 	Object.keys(bonziCoinsTabs).forEach(key => {
@@ -2367,15 +2367,15 @@ function drawStockGraph(ticker){
 	ctx.stroke();
 }
 
-
-const WORLD_SIZE = 10000;
+let spr = 300;
+const WORLD_SIZE = 9000;
 const MAX_MOVE_DIST = 1200;     
 const MOVE_DURATION_MS = 1000;  
 const ON_FOOT_COOLDOWN_MIN_MS = 4000;
 const ON_FOOT_COOLDOWN_MAX_MS = 5000;
-let camera = {x: WORLD_SIZE/2, y: WORLD_SIZE/2};
+let camera = {x: (WORLD_SIZE/2)+(0-spr)+Math.floor(Math.random()*spr), y: (WORLD_SIZE/2)+(0-spr)+Math.floor(Math.random()*spr)};
 
-let myWorldPos = {x: WORLD_SIZE/2, y: WORLD_SIZE/2, moving:false, moveOriginX:WORLD_SIZE/2, moveOriginY:WORLD_SIZE/2, moveTargetX: WORLD_SIZE/2, moveTargetY: WORLD_SIZE/2, moveStartTime:0};
+let myWorldPos = {x: camera.x, y: camera.y, moving:false, moveOriginX:camera.x, moveOriginY:camera.y, moveTargetX: camera.x, moveTargetY: camera.y, moveStartTime:0};
 let targetMode = false;
 let nextMoveAllowedAt = 0;
 let wasdKeys = {up:false,down:false,left:false,right:false};

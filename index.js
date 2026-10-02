@@ -78,17 +78,17 @@ var publicrooms = { "default":{
       socketId:"bonziBuddy",
       hats:[],
 
-      posX: 5000,
-      posY: 5000,
+      posX: 4500,
+      posY: 4500,
       velX: 0,
       velY: 0,
       vehicle: null,
       moving: false,
       moveStartTime: 0,
-      moveOriginX: 5000,
-      moveOriginY: 5000,
-      moveTargetX: 5000,
-      moveTargetY: 5000
+      moveOriginX: 4500,
+      moveOriginY: 4500,
+      moveTargetX: 4500,
+      moveTargetY: 4500
     }
   ]
 }};
@@ -305,7 +305,7 @@ function getPublicVehiclePresets(){
 	return out;
 }
 
-const WORLD_SIZE = 10000;
+const WORLD_SIZE = 9000;
 const MAX_MOVE_DIST = 1200; 
 const MOVE_DURATION_MS = 1000; 
 const ON_FOOT_COOLDOWN_MIN_MS = 4000; 
@@ -320,8 +320,9 @@ let tickCount = 0;
 
 
 function ensureWorldPos(user){
-	if(typeof user.posX !== 'number')user.posX = WORLD_SIZE/2;
-	if(typeof user.posY !== 'number')user.posY = WORLD_SIZE/2;
+	let spr = 300;
+	if(typeof user.posX !== 'number')user.posX = (WORLD_SIZE/2)+(0-spr)+Math.floor(Math.random()*spr);
+	if(typeof user.posY !== 'number')user.posY = (WORLD_SIZE/2)+(0-spr)+Math.floor(Math.random()*spr);
 	if(typeof user.velX !== 'number')user.velX = 0;
 	if(typeof user.velY !== 'number')user.velY = 0;
 	if(typeof user.moving !== 'boolean')user.moving = false;
@@ -582,7 +583,7 @@ setInterval(() => {
 	io.emit('stocksUpdate', getPublicStocks());
 }, (10*1000));
 
-// ---- gifting ----
+
 let giftCooldowns = {};
 function giftCoins(thisSocket, data){
 	if(typeof data !== 'object' || data === null)return;
@@ -610,7 +611,7 @@ function giftCoins(thisSocket, data){
 	io.to(targetUser.socketId).emit('coinGiftReceived',{from:thisSocket.user.name,amount});
 }
 
-// ---- hats & vehicles purchases ----
+ 
 function buyHat(thisSocket, data){
 	if(typeof data !== 'object' || data === null)return;
 	if(!thisSocket.user.account){thisSocket.emit('bonzicoinErr','You need an active BonziCOIN account first.'); return;}
