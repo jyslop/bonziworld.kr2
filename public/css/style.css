@@ -631,16 +631,17 @@ p {
     background: white;
     z-index: 99;
     left: 0px;
-    bottom: 31px;
+    bottom: 30px;
     display: none;
     flex-direction: column;
     z-index: 9999;
 }
 .startbanner {
     background: #a872db;
-    background: linear-gradient(0deg, rgb(150 98 220) 16%, rgb(103 62 165) 90%, rgb(163 135 213) 100%);
+    background: linear-gradient(0deg, rgb(150 98 220) 11%, rgb(103 62 165) 90%, rgb(163 135 213) 100%);
     display: flex;
     width: 100%;
+    border: 1px solid rgb(105 50 182);
     height: 22%;
     flex-direction: row;
     user-select: none;
@@ -669,14 +670,26 @@ p {
 .startselection:hover{
 	background:rgba(0,50,220,0.3);
 }
+.select_title {
+	font-size:12px;
+}
+.select_description {
+    font-family: 'WinXP';
+    font-size: 14px;
+    color: gray;
+}
+.start_title {
+    text-shadow: 1px 1px 5px rgba(0,0,0,1);
+    letter-spacing: 1px;
+}
 .startoptions {
-	height: 45px;
-	width:100%;
-	background: linear-gradient(180deg, rgb(178 106 244), rgb(126 24 190));
-	border: 1px solid rgb(36 0 42);
-	position: relative;
-	bottom: -60px;
-	float:bottom;
+    height: 45px;
+    width: 100%;
+    background: linear-gradient(180deg, rgb(159 106 244), rgb(81 24 190));
+    border: 1px solid rgb(36 0 42);
+    position: relative;
+    bottom: -66px;
+    float: bottom;
 }
 .startbreak {
 	width:95%;
@@ -812,5 +825,20 @@ rowbox {
 	border:1px solid white;
 	border-radius:3px;
 	padding:5px;
-	margin-top:200px;
+	margin-top:200px;font-family: WinXP;
+    font-size: 16px;
+    color: white;
+}
+.settings_wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+    width: 100%;
+    height: 170px;
+    overflow-y: scroll;
+    background: linear-gradient(45deg, black, transparent,white);
+    overflow-x: hidden;
+    padding: 2px;
+	image-rendering:initial;
 }

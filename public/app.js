@@ -377,7 +377,7 @@ let applets = {
                             <button onclick="socket.emit('command',{type:'name',param:document.getElementById('usernameswap').value}); profileList[0].name=document.getElementById('usernameswap').value; saveArray('profiles', profileList); ">Set Name</button> 
                             <hr style="border: 0; border-top: 1px dashed rgba(255,255,255,0.4); margin: 8px 0;"> 
                             Hats:<br> 
-                            <div id="hat_grid" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;width:100%;height: 170px;overflow-y:scroll;background: linear-gradient(45deg, black, transparent,white);overflow-x:hidden;padding: 2px;" bis_skin_checked="1"></div> 
+                            <div id="hat_grid" class="settings_wrapper" bis_skin_checked="1"></div> 
                             <button onclick="socket.emit('command',{type:'hat',param:''}); profileList[0].hats=[];" style="margin-top:6px;">Clear Hats</button> 
                         </div>
 
