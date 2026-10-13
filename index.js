@@ -52,7 +52,7 @@ app.use('/img', express.static(__dirname + '/public/img'));
 http.listen(process.env.PORT || 3000, function() {
   var host = http.address().address
   var port = http.address().port
-  console.log('BonziWORLD XP is listening at port %s' + '!', port)
+  console.log('BonziWORLD.kr is listening at port %s' + '!', port)
 });
 
 var colorList = config.colorList;
@@ -66,12 +66,14 @@ var botmsg = [
 var publicrooms = { "default":{
    isPublic:true,
 	owner:'none',
+	byoutube:'none',
    users: [
     {
       name: "BonziBUDDY",
       color: "/img/bonzi/purple.png",
       id: "bonzibuddy",
       tag:"<img src='/img/desktop/icons/server.png' class='tagicon'>",
+	  tag2:'Bot',
       pitch: 80,
       speed: 150,
       messages: [],
@@ -133,7 +135,7 @@ function blankify(input, maxLength = 2500) {
 function getUsers(roomId){
 	let result = [];
 	publicrooms[roomId].users.forEach(fullUser => {
-		let obfuscatedUser = {name:fullUser.name,color:fullUser.color,id:fullUser.id,pitch:fullUser.pitch,speed:fullUser.speed,hats:fullUser.hats||[],tag:fullUser.tag||"",typing:fullUser.typing,posX:fullUser.posX,posY:fullUser.posY,vehicle:fullUser.vehicle||null,coins:fullUser.account ? Math.round(fullUser.account.coins*100)/100 : 0};
+		let obfuscatedUser = {name:fullUser.name,color:fullUser.color,id:fullUser.id,pitch:fullUser.pitch,speed:fullUser.speed,hats:fullUser.hats||[],tag2:fullUser.tag2,tag:fullUser.tag||"",typing:fullUser.typing,posX:fullUser.posX,posY:fullUser.posY,vehicle:fullUser.vehicle||null,coins:fullUser.account ? Math.round(fullUser.account.coins*100)/100 : 0};
 		result.push(obfuscatedUser);
 	});
 	return result;
@@ -663,7 +665,7 @@ io.on("connection", function(socket){
 		color: newcolor, 
 		id: userid, 
 		hats:[],
-		messages: ["Welcome to BonziWORLD XP"],
+		messages: ["Welcome to BonziWORLD.kr"],
 		ip: socket.handshake.headers["x-forwarded-for"] || "127.0.0.1",
 		loggedIn:false,
 		roomId:"default",
@@ -678,7 +680,8 @@ io.on("connection", function(socket){
 		tag:"",
 		socket:socket,
 		coins:0,
-		account:{coins:0}
+		account:{coins:0},
+		tag2:''
 	};
 
 	socket._powChallenge = null;

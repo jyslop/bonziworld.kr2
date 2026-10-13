@@ -842,3 +842,28 @@ rowbox {
     padding: 2px;
 	image-rendering:initial;
 }
+.bonzi_tag2 {
+    background: #ffffe1;
+    border: 1px solid black;
+    padding: 3px;
+    position: relative;
+    /* margin-top: -37px; */
+    top: -30px;
+    margin-left: -33px;
+    font-family: 'WinXP';
+    font-size: 18px;
+
+}
+.log_label {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+.log_pfp {
+    background-image: url(./img/bonzi/purple.png);
+    width: 45px;
+    height: 45px;
+    border-radius: 45px;
+    background-position: -78px -39px;
+	image-rendering:auto;
+}

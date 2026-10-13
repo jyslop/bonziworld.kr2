@@ -1,8 +1,15 @@
 let profileList = loadArray('profiles');
 let blessedHats = ['clippy','peedy','whiteobama','qmark','yahu','sunglasses','spongebob','whiteobama','witch','silverfedora','pumpkin','illuminati','cigar','dank','cauldron','bathbomb'];
+let Themes = {
+	"XP":"./themes/xp.css",
+	"Vista":"./themes/vista.css",
+	"Default":"",
+	"Classic":"./themes/classic.css",
+};
 
 profileList = profileList == null ? [ {name:'Anonymous',color:'purple',hats:[],godmodePass:null,bonzicoinPass:null,uses:0} ] : profileList;
 if(typeof profileList[0].bonzicoinPass == 'undefined')profileList[0].bonzicoinPass=null;
+if(typeof profileList[0].optOutMovement == 'undefined')profileList[0].optOutMovement=false;
 let disconnectHandle = () => {};
 let notifyUserEvent_BONZICOIN = true;
 let notifyUserEvent_ERROR = true;
@@ -100,11 +107,11 @@ class Notify {
 function insertNuke(x,y,color){
     let localId = Id(5);
     document.body.insertAdjacentHTML('beforeend',`
-    <div style="width:200px;height:200px;overflow:hidden;position:absolute;left:${x}px;top:${y}px;animation:flyaway 1s ease-in;z-index:999;" id="${localId}">
-        <div style="overflow:hidden;width:200px;height:160px;">
+    <div style="width:200px;height:200px;overflow:hidden;position:absolute;left:${x}px;top:${y}px;animation:flyaway 1s ease-in;z-index:99999;" id="${localId}">
+        <img src="./img/desktop/nuke.gif" width="200" height="auto" style="">
+		<div style="overflow:hidden;width:200px;height:160px;position:relative;top:-200px;">
             <img src="${color}" width="3300" height="auto">
         </div>
-        <img src="./img/desktop/nuke.gif" width="200" height="auto" style="position:relative;top:-200px;">
         
     </div>
     `);
@@ -353,12 +360,14 @@ let applets = {
                 html: `
                 <div style="display:flex; overflow: hidden !important;" bis_skin_checked="1">
                     <div style="width: 99px; height:497px; background: linear-gradient(rgb(188 160 230), rgb(130 102 169)); display:flex; flex-direction:column; align-items:center; padding:10px" bis_skin_checked="1">
-                        <div style="width:95px; height:70px; background:white; border-radius: 4px; font-size:12px; text-align:center;" bis_skin_checked="1">
+                        <div style="width:95px; height:90px; background:white; border-radius: 4px; font-size:12px; text-align:center;" bis_skin_checked="1">
                             <div style="width: 89px; height: 18px; background: indigo; border-radius: 4px 4px 0px 0px; padding: 3px; font-size: 12px; color: white; font-weight: bold; text-shadow: 1px 1px black;" bis_skin_checked="1">
                                 Menu
                             </div> 
                             <a href="#" id="tab_btn_mybonzi" style="display:block; margin: 4px 0; color: indigo; font-weight: bold;">My Bonzi</a>
+							<a href="#" id="tab_btn_prefs" style="display:block; color: gray;">Config</a>
                             <a href="#" id="tab_btn_css" style="display:block; color: gray;">CSS</a>
+							
                         </div> 
                     </div> 
 
@@ -368,7 +377,6 @@ let applets = {
                             Color:<br> 
                             <div id="row_color1" style="display:flex; flex-direction:row; margin-bottom: 4px;" bis_skin_checked="1"></div> 
                             <div id="row_color2" style="display:flex; flex-direction:row; margin-bottom: 8px;" bis_skin_checked="1"></div> 
-                            <input type="text" placeholder="crosscolor (optional, catbox.moe only)" id="ccurl" style="width: 160px;"> 
                             <button onclick="socket.emit('command',{type:'color',param:document.getElementById('ccurl').value});  profileList[0].color=document.getElementById('ccurl').value; saveArray('profiles', profileList); ">submit CC</button> 
                             &nbsp; &nbsp; &nbsp; <button onclick="window.open('https://catbox.moe');">Catbox</button> 
                             <hr style="border: 0; border-top: 1px dashed rgba(255,255,255,0.4); margin: 8px 0;"> 
@@ -380,10 +388,20 @@ let applets = {
                             <div id="hat_grid" class="settings_wrapper" bis_skin_checked="1"></div> 
                             <button onclick="socket.emit('command',{type:'hat',param:''}); profileList[0].hats=[];" style="margin-top:6px;">Clear Hats</button> 
                         </div>
-
+						<div id="view_prefs" style="display: none; width: 100%; height: 100%;">
+							Preferences:<br>
+							<div style="display:flex;gap:6px;margin-top:8px;">
+								<input type="checkbox" id="pref_optout_movement">
+								<label for="pref_optout_movement">Opt out of user-based movement</label>
+							</div>
+							<div style="display:flex;gap:6px;margin-top:8px;">
+								<input type="checkbox" id="pref_bonzitv_bg">
+							<label for="pref_bonzitv_bg">View BonziTV/Byoutube in background</label>
+							</div>
+						</div>
                         <div id="view_css" style="display: none; width: 100%; height: 100%;">
                             Custom CSS Editor:<br>
-                            <textarea id="css_tab_textarea" style="width: 95%; height: 260px; background: #1a1525; color: #d4c5f0; border: 1px solid #5c3c80; font-family: monospace; font-size: 11px; resize: none; margin-top: 5px; padding: 4px; box-sizing: border-box;" placeholder="/* Enter custom CSS rules here */"></textarea>
+                            <textarea id="css_tab_textarea" style="width: 95%; height: 195px; background: #1a1525; color: #d4c5f0; border: 1px solid #5c3c80; font-family: monospace; font-size: 11px; resize: none; margin-top: 5px; padding: 4px; box-sizing: border-box;" placeholder="/* Enter custom CSS rules here */"></textarea>
                             <hr style="border: 0; border-top: 1px dashed rgba(255,255,255,0.4); margin: 12px 0;">
                             Background Color:<br>
                             <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
@@ -392,11 +410,9 @@ let applets = {
 								<button id="bg_color_del">Reset</button>
                             </div>
                             <hr style="border: 0; border-top: 1px dashed rgba(255,255,255,0.4); margin: 12px 0;">
-                            Marquee Background:<br>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
-                                <input type="checkbox" id="hide_marquee_toggle">
-                                <label for="hide_marquee_toggle" style="font-size: 11px; opacity: 0.8;">Hide floating background bonzis</label>
-                            </div>
+                            <div class="settings_wrapper" id="theme_grid">
+							
+							</div>
                         </div>
 
                     </div>
@@ -412,34 +428,86 @@ let applets = {
                 styleTag.id = "bonzi-custom-css";
                 document.head.appendChild(styleTag);
             }
+			var btnMyBonzi = document.getElementById("tab_btn_mybonzi");
+var btnCss = document.getElementById("tab_btn_css");
+var btnPrefs = document.getElementById("tab_btn_prefs");
+var viewMyBonzi = document.getElementById("view_mybonzi");
+var viewCss = document.getElementById("view_css");
+var viewPrefs = document.getElementById("view_prefs");
+var cssTextarea = document.getElementById("css_tab_textarea");
+var colorRamp = document.getElementById("bg_color_ramp");
+			
+btnMyBonzi.addEventListener("click", (e) => {
+    e.preventDefault();
+    viewMyBonzi.style.display = "block";
+    viewCss.style.display = "none";
+    viewPrefs.style.display = "none";
+    btnMyBonzi.style.color = "indigo";
+    btnMyBonzi.style.fontWeight = "bold";
+    btnCss.style.color = "gray";
+    btnCss.style.fontWeight = "normal";
+    btnPrefs.style.color = "gray";
+    btnPrefs.style.fontWeight = "normal";
+});
 
-            var btnMyBonzi = document.getElementById("tab_btn_mybonzi");
-            var btnCss = document.getElementById("tab_btn_css");
-            var viewMyBonzi = document.getElementById("view_mybonzi");
-            var viewCss = document.getElementById("view_css");
-            var cssTextarea = document.getElementById("css_tab_textarea");
-            var colorRamp = document.getElementById("bg_color_ramp");
+			btnCss.addEventListener("click", (e) => {
+				e.preventDefault();
+				viewMyBonzi.style.display = "none";
+				viewCss.style.display = "block";
+				viewPrefs.style.display = "none";
+				btnCss.style.color = "indigo";
+				btnCss.style.fontWeight = "bold";
+				btnMyBonzi.style.color = "gray";
+				btnMyBonzi.style.fontWeight = "normal";
+				btnPrefs.style.color = "gray";
+				btnPrefs.style.fontWeight = "normal";
+				setTimeout(() => {
+					if(document.getElementById("theme_grid")){
+						document.getElementById("theme_grid").innerHTML="";
+						Object.keys(Themes).forEach(themeName => {
+							let currentTheme = Themes[themeName];
+							
+							
+							document.getElementById("theme_grid").insertAdjacentHTML('beforeend',`
+								<button onclick="swapTheme('${currentTheme}');"><img src="./themes/${themeName.toLowerCase()}.png" width="45" height="45"><br>${themeName}</button>
+							`);
+						});
+					}
+				},1000);
+			});
 
-            btnMyBonzi.addEventListener("click", (e) => {
-                e.preventDefault();
-                viewMyBonzi.style.display = "block";
-                viewCss.style.display = "none";
-                btnMyBonzi.style.color = "indigo";
-                btnMyBonzi.style.fontWeight = "bold";
-                btnCss.style.color = "gray";
-                btnCss.style.fontWeight = "normal";
-            });
+			btnPrefs.addEventListener("click", (e) => {
+				e.preventDefault();
+				viewMyBonzi.style.display = "none";
+				viewCss.style.display = "none";
+				viewPrefs.style.display = "block";
+				btnPrefs.style.color = "indigo";
+				btnPrefs.style.fontWeight = "bold";
+				btnMyBonzi.style.color = "gray";
+				btnMyBonzi.style.fontWeight = "normal";
+				btnCss.style.color = "gray";
+				btnCss.style.fontWeight = "normal";
+			});
 
-            btnCss.addEventListener("click", (e) => {
-                e.preventDefault();
-                viewMyBonzi.style.display = "none";
-                viewCss.style.display = "block";
-                btnCss.style.color = "indigo";
-                btnCss.style.fontWeight = "bold";
-                btnMyBonzi.style.color = "gray";
-                btnMyBonzi.style.fontWeight = "normal";
-            });
-
+			var prefOptOut = document.getElementById("pref_optout_movement");
+			prefOptOut.checked = profileList[0].optOutMovement === true;
+			prefOptOut.addEventListener("change", () => {
+				
+				profileList[0].optOutMovement = prefOptOut.checked;
+				
+				saveArray('profiles', profileList);
+				worldActive = !prefOptOut.checked;
+				if(prefOptOut.checked){
+					targetMode = false;
+					wasdKeys = {up:false,down:false,left:false,right:false};
+					socket.emit('wasd',wasdKeys);
+					var tc = document.getElementById('target_cursor');
+					var ov = document.getElementById('world_click_overlay');
+					if(tc)tc.style.display='none';
+					if(ov)ov.style.display='none';
+					clampAllBonzis();
+				}
+			});
             var savedCSS = getCookie("custom_bonzi_css");
             if (savedCSS) {
                 cssTextarea.value = savedCSS;
@@ -452,15 +520,7 @@ let applets = {
                 applyBgColor(savedBgColor);
             }
 
-            var marqueeToggle = document.getElementById("hide_marquee_toggle");
-            var savedHideMarquee = getCookie("hide_marquee_bg");
-            marqueeToggle.checked = savedHideMarquee === "true";
-            document.getElementById("content").classList.toggle("hide_marquee_bg", marqueeToggle.checked);
-
-            marqueeToggle.addEventListener("change", () => {
-                document.getElementById("content").classList.toggle("hide_marquee_bg", marqueeToggle.checked);
-                setCookie("hide_marquee_bg", marqueeToggle.checked, 30);
-            });
+            
 
             cssTextarea.addEventListener("input", () => {
                 styleTag.innerHTML = cssTextarea.value;
@@ -1763,7 +1823,7 @@ function login(newRoom){
     room: typeof newRoom === 'string' ? newRoom.substring(0, 64) : "",
     bonzicoinPass: typeof profileList[0].bonzicoinPass === 'string' ? profileList[0].bonzicoinPass : undefined
 });
-  worldActive = true;
+  worldActive = !profileList[0].optOutMovement;
 
   socket.once('pow_challenge', async (data) => {
 	showPoWIndicator();
@@ -2072,7 +2132,7 @@ setInterval(unfuck,5000);
   });
 
   socket.on("nuke",(data)=>{
-    let nuketarget = screenbonzis({id:data.id});
+    let nuketarget = screenbonzis({id:data.id});console.log(nuketarget.color);
 	let positioning = document.getElementById(data.id).getBoundingClientRect();
 	insertNuke(positioning.x,positioning.y,nuketarget.color);
 	setTimeout(() => {nuketarget.leave(true);},1);
@@ -2454,7 +2514,7 @@ function ensureWorldOverlay(){
 
 document.addEventListener('keydown', (e) => {
 	if(e.key === 'Shift' && !e.repeat){
-		if(myVehicle)return; 
+		if(myVehicle || !worldActive)return; 
 		ensureWorldOverlay();
 		targetMode = !targetMode;
 		if(targetMode){
@@ -2469,7 +2529,7 @@ document.addEventListener('keydown', (e) => {
 		document.getElementById('target_cursor').style.display = targetMode ? 'block' : 'none';
 		document.getElementById('world_click_overlay').style.display = targetMode ? 'block' : 'none';
 	}
-	if(myVehicle){
+	if(myVehicle && worldActive){
 		let key = e.key.toLowerCase();
 		let changed = false;
 		if(key==='w'&&!wasdKeys.up){wasdKeys.up=true;changed=true;}
@@ -2521,10 +2581,24 @@ function handleRemoteMove(data){
 }
 
 const WORLD_RENDER_TICK_MS = 33;
-setInterval(() => {
+setInterval(() => {	let nB = document.getElementById('world_border_n');
+	let sB = document.getElementById('world_border_s');
+	let eB = document.getElementById('world_border_e');
+	let wB = document.getElementById('world_border_w'); let cx = window.innerWidth/2, cy = window.innerHeight/2; let nx = (0 - camera.x) + cx, sy = (WORLD_SIZE - camera.y) + cy;
+	let wx = (0 - camera.x) + cx, ex = (WORLD_SIZE - camera.x) + cx;
+	let nyTop = (0 - camera.y) + cy;
 	//if(!worldActive)return;
 	ensureWorldOverlay();
-	let now = performance.now();
+if(!worldActive){
+	document.querySelectorAll('.world_border_line').forEach(el => {el.style.display='none';});
+	return;
+} else {
+	if(nB){nB.style.display='';nB.style.left=wx+'px'; nB.style.top=nyTop+'px'; nB.style.width=WORLD_SIZE+'px';}
+if(sB){sB.style.display='';sB.style.left=wx+'px'; sB.style.top=sy+'px'; sB.style.width=WORLD_SIZE+'px';}
+if(wB){wB.style.display='';wB.style.top=nyTop+'px'; wB.style.left=wx+'px'; wB.style.height=WORLD_SIZE+'px';}
+if(eB){eB.style.display='';eB.style.top=nyTop+'px'; eB.style.left=ex+'px'; eB.style.height=WORLD_SIZE+'px';}
+}
+let now = performance.now();
 
 	if(myVehicle){
 		advanceLocalVehicle(WORLD_RENDER_TICK_MS/1000);
@@ -2535,7 +2609,7 @@ setInterval(() => {
 	}
 	camera.x = myWorldPos.x;
 	camera.y = myWorldPos.y;
-	let cx = window.innerWidth/2, cy = window.innerHeight/2;
+	
 
 	bonzislist.forEach(b => {
 		if(typeof b.worldX !== 'number')return;
@@ -2549,13 +2623,8 @@ setInterval(() => {
 		b.move({x: screenX+'px', y: screenY+'px'});
 	});
 
-	let nx = (0 - camera.x) + cx, sy = (WORLD_SIZE - camera.y) + cy;
-	let wx = (0 - camera.x) + cx, ex = (WORLD_SIZE - camera.x) + cx;
-	let nyTop = (0 - camera.y) + cy;
-	let nB = document.getElementById('world_border_n');
-	let sB = document.getElementById('world_border_s');
-	let eB = document.getElementById('world_border_e');
-	let wB = document.getElementById('world_border_w');
+	
+
 	if(nB){nB.style.left=wx+'px'; nB.style.top=nyTop+'px'; nB.style.width=WORLD_SIZE+'px';}
 	if(sB){sB.style.left=wx+'px'; sB.style.top=sy+'px'; sB.style.width=WORLD_SIZE+'px';}
 	if(wB){wB.style.top=nyTop+'px'; wB.style.left=wx+'px'; wB.style.height=WORLD_SIZE+'px';}

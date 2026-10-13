@@ -257,7 +257,7 @@ let config =  {
 		"tag":(thisSocket,eventData)=>{
 			if(thisSocket.user.level > 1 && typeof eventData == "string"){
 				eventData = blankify(eventData,32);
-				thisSocket.user = updateUser(thisSocket.user,{tag:eventData},true);
+				thisSocket.user = updateUser(thisSocket.user,{tag2:eventData},true);
 				return thisSocket.user;
 			}
 		},
