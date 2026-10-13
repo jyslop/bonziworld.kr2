@@ -27,41 +27,91 @@ var replyTarget = null;
 var worldActive = false;
 var myWallet = {hasAccount:false, coins:0, hats:[], vehicles:[], equippedVehicle:null, company:null};
 
-let listenerNames = ["msg","asshole","userlist","leave","newuser","room","userEvent","wallet","stocksUpdate","bonzicoinErr","coinGiftReceived","stockPosition","stockSold","userMoveTo","worldSync","userVehicle","vehicleDestroyed","vehiclePresets"];
+let listenerNames = ["msg","asshole","userlist","leave","newuser","room","userEvent","wallet","stocksUpdate","bonzicoinErr","coinGiftReceived","stockPosition","stockSold","userMoveTo","worldSync","userVehicle","vehicleDestroyed","vehiclePresets","youtube","byoutube"];
 function setCookie(cname,cvalue,exdays) {
   var d = new Date();
   d.setTime(d.getTime() + (exdays*24*60*60*1000));
   let expires = "expires=" + d.toUTCString();
   document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
+var legacyMarkupRules = {
+	"**": "b",
+	"~~": "i",
+	"--": "s",
+	"__": "u",
+	"``": "code",
+	"^^": "gay-big",
+	"$r$": "gay-rainbow",
+	"||": "gay-spoiler",
+	"%%": "marquee",
+};
 function markupify(text,removeMarkupze=false){
-	let keys = {
-		'**':{pair:['<div class="md-bold">','</div>'],open:false},
-		'~~':{pair:['<div class="md-italics">','</div>'],open:false},
-		'$r$':{pair:['<div class="md-rainbow">','</div>'],open:false},
-		'``':{pair:['<div class="md-code">','</div>'],open:false},
-		'__':{pair:['<u>','</u>'],open:false},
-		'--':{pair:['<del>','</del'],open:false},
-		'%%':{pair:['<marquee>','</marquee>'],open:false},
-	};
-	let keyList = Object.keys(keys);
-	while(keyList.some(r => text.includes(r))){
-		keyList.forEach(keyName => {
-			if(removeMarkupze){
-				text = text.replaceAll(keyName,'')
-			} else {
-				if(keys[keyName].open){
-					text = text.replace(keyName,keys[keyName].pair[1]);
-				} else {
-					text = text.replace(keyName,keys[keyName].pair[0]);
-				}
-				keys[keyName].open = !keys[keyName].open;
+	let tokenList = Object.keys(legacyMarkupRules).sort((a, b) => b.length - a.length);
+	if(removeMarkupze){
+		while(tokenList.some(r => text.includes(r))){
+			tokenList.forEach(keyName => {text = text.replaceAll(keyName,'');});
+		}
+		return text;
+	}
+	text = text
+		.replace(/(^|\\n)(&gt;.*?)($|\\n)/g, "$1<span class=\"greentext\">$2</span>$3")
+		.replaceAll("\\n", "<br>");
+
+	let parts = [];
+	let i = 0;
+	while(i < text.length){
+		let matched = false;
+		for(let token of tokenList){
+			if(text.slice(i, i + token.length) === token){
+				parts.push({type: "token", token});
+				i += token.length;
+				matched = true;
+				break;
 			}
-		    
-		});
+		}
+		if(!matched){
+			if(parts.length > 0 && parts[parts.length - 1].type === "text"){
+				parts[parts.length - 1].value += text[i];
+			} else {
+				parts.push({type: "text", value: text[i]});
+			}
+			i++;
+		}
 	}
 
-	return text;
+	let stack = [];
+	let result = "";
+	for(let part of parts){
+		if(part.type === "text"){
+			result += part.value;
+			continue;
+		}
+		let token = part.token;
+		let tag = legacyMarkupRules[token];
+		let idx = stack.indexOf(token);
+		if(idx === -1){
+			stack.push(token);
+			result += `<${tag}>`;
+		} else {
+			let toReopen = [];
+			while(stack.length > idx + 1){
+				let inner = stack.pop();
+				result += `</${legacyMarkupRules[inner]}>`;
+				toReopen.push(inner);
+			}
+			stack.pop();
+			result += `</${tag}>`;
+			for(let r of toReopen.reverse()){
+				stack.push(r);
+				result += `<${legacyMarkupRules[r]}>`;
+			}
+		}
+	}
+	while(stack.length > 0){
+		let token = stack.pop();
+		result += `</${legacyMarkupRules[token]}>`;
+	}
+	return result;
 }
 function reversify(newArray){
 	let result = [];
@@ -505,7 +555,7 @@ btnMyBonzi.addEventListener("click", (e) => {
 					var ov = document.getElementById('world_click_overlay');
 					if(tc)tc.style.display='none';
 					if(ov)ov.style.display='none';
-					clampAllBonzis();
+					scatterOutOfBoundsBonzis();
 				}
 			});
             var savedCSS = getCookie("custom_bonzi_css");
@@ -643,7 +693,24 @@ function clampAllBonzis() {
 		}
 	}
 }
-
+function scatterOutOfBoundsBonzis() {
+	var xmax = Math.max(0, $(window).width() - 200);
+	var ymax = Math.max(0, $(window).height() - 160 - 30);
+	for (var i = 0; i < bonzislist.length; i++) {
+		var b = bonzislist[i];
+		var el = document.getElementById(b.id);
+		if (!el) continue;
+		var cx = parseInt(el.style.left) || 0;
+		var cy = parseInt(el.style.top) || 0;
+		b.moving = false;
+		if (cx < 0 || cx > xmax || cy < 0 || cy > ymax) {
+			b.move({
+				x: Math.floor(Math.random() * xmax) + "px",
+				y: Math.floor(Math.random() * ymax) + "px"
+			});
+		}
+	}
+}
 function raiseBonzi(localId) {
 	bonziZCounter++;
 	var zBase = bonziZCounter * 5;
@@ -850,6 +917,18 @@ function Id(length) {
    }
    return result;
 }
+function setByoutube(src){
+	var frame = document.getElementById('byoutube_frame');
+	if(!frame)return;
+	if(typeof src != 'string' || src === 'none' || src === ''){
+		frame.src = '';
+		frame.style.display = 'none';
+		return;
+	}
+	if(src.indexOf('https://www.youtube.com/embed/') !== 0)return;
+	frame.src = src;
+	frame.style.display = 'block';
+}
 function clearLog(){
 	logtxt=`<i>Log reset.</i><hr>`;
 	if(document.getElementById('log_contents') !== null)document.getElementById('log_contents').innerHTML = logtxt;
@@ -873,16 +952,36 @@ function clearReplyTarget() {
 	var indicator = document.getElementById('reply_indicator');
 	if(indicator) indicator.remove();
 }
+function logTimeString(){
+	var now = new Date();
+	var hours = now.getHours();
+	var suffix = hours >= 12 ? 'PM' : 'AM';
+	hours = hours % 12 || 12;
+	var minutes = now.getMinutes();
+	return hours + ':' + (minutes < 10 ? '0' : '') + minutes + ' ' + suffix;
+}
+function logPfpImages(logBonzi){
+	var layers = [];
+	var hats = logBonzi && Array.isArray(logBonzi.hats) ? logBonzi.hats.slice(0,5) : [];
+	for(let i = hats.length - 1; i >= 0; i--){
+		if(hatList[hats[i]])layers.push("url('" + hatList[hats[i]] + "')");
+	}
+	var colorUrl = logBonzi && typeof logBonzi.colorUrl == 'string' && logBonzi.colorUrl.length > 0 ? logBonzi.colorUrl : colorCache["purple"];
+	layers.push("url('" + colorUrl + "')");
+	return layers.join(',');
+}
 function newLog(options){
 	var replyHtml = '';
 	if(options.quote && options.quote.name && options.quote.msg){
 		replyHtml = '<div style="border-left:3px solid #888;padding:2px 6px;margin-bottom:4px;background:rgba(0,0,0,0.07);font-size:12px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;"><b>' + options.quote.name + ':</b> ' + options.quote.msg + '</div>';
 	}
-	var msgId = 'logmsg_' + Id(8);
+	var replyMsg = typeof options.replyMsg == 'string' ? options.replyMsg : options.msg;
 	var escapedName = options.name.replace(/'/g,"&#39;").replace(/"/g,"&quot;");
-	var escapedMsg = options.msg.replace(/'/g,"&#39;").replace(/"/g,"&quot;");
-	logtxt += '<div style="position:relative;padding-right:28px;">' + replyHtml + '<b>' + options.name + ':</b>' + options.msg + '<button onclick="setReplyTarget(\'' + escapedName + '\',\'' + escapedMsg + '\');" style="position:absolute;top:0;right:0;width:22px;height:22px;padding:0;font-size:11px;line-height:1;" title="Reply">&#x21A9;</button></div><hr>';
-	if(document.getElementById('log_contents') !== null)document.getElementById('log_contents').innerHTML = logtxt;
+	var escapedMsg = replyMsg.replace(/'/g,"&#39;").replace(/"/g,"&quot;");
+	var entry = '<div style="position:relative;padding-right:28px;" ><div class="log_label" ><div class="log_pfp" style="background-image:' + logPfpImages(options.bonzi) + '" ></div><b>' + options.name + ':</b>\n<h6 style="color:gray;">' + logTimeString() + '</h6></div>' + replyHtml + '<span style="font-family:\'WinXP\';font-size:18px;">' + options.msg + '</span><button onclick="setReplyTarget(\'' + escapedName + '\',\'' + escapedMsg + '\');" style="position:absolute;top:0;right:0;width:22px;height:22px;padding:0;font-size:11px;line-height:1;" title="Reply">&#x21A9;</button></div><hr>';
+	logtxt += entry;
+	var logContents = document.getElementById('log_contents');
+	if(logContents !== null)logContents.insertAdjacentHTML('beforeend', entry);
 }
 function touchHandler(event){
   var touches = event.changedTouches,first = touches[0],type = "";
@@ -1148,6 +1247,8 @@ function bonzi(colorurl,left,top,property){
   $("#point_" + localId).hide();
   
   var currentHats = property.hats || [];
+  this.hats = currentHats;
+  this.colorUrl = colorurl;
   var hatImgCache = {};
 
   var canvas = document.getElementById(localId);
@@ -1406,8 +1507,10 @@ var animationPlayback = (animationData,playType) => {
 	if(reDraw){
     draw(0,0);
     animate({type: "idle"});}
+    if(properties.color)this.colorUrl = properties.color;
     if(Array.isArray(properties.hats)){
       currentHats = properties.hats;
+      this.hats = currentHats;
       drawHats();
     }
   }
@@ -1731,6 +1834,7 @@ function reconnect(newRoom) {
 		disconnectErr=false;
 		socket.off('disconnect');
 		listenerNames.forEach(listenName => {socket.off(listenName);});
+		setByoutube('none');
 		resetUsers([]); 
 		worldActive = false;
 		targetMode = false;
@@ -1796,6 +1900,7 @@ function login(newRoom){
 	socket.connect();
 	if(typeof newRoom == 'undefined')newRoom=$("#login_room").val();
 	listenerNames.forEach(listenerName => {socket.off(listenerName);});
+	setByoutube('none');
 	socket.off('pow_challenge');
 	socket.off('pow_solution');
 	Object.keys(applets).forEach(appletName => {
@@ -2038,15 +2143,20 @@ setInterval(unfuck,5000);
 
 	let newMsg = urlify(data.msg.replaceAll('{NAME}',thisbonzi.name).replaceAll('{COLOR}',thisbonzi.color));
 	
-    if(!thisbonzi.mute)newLog({name:thisbonzi.name, msg:newMsg, quote: data.quote || null});
+    if(!thisbonzi.mute)newLog({name:thisbonzi.name, msg:newMsg, quote: data.quote || null, bonzi:thisbonzi});
     thisbonzi.talk({text: newMsg, quote: data.quote || null});
   });
   socket.on("youtube", (data) => {
 	  let thisbonzi = screenbonzis({id: data.by});
+	  let embedHtml = `<iframe width="200" height="200" src="https://www.youtube.com/embed/${encodeURIComponent(data.videoCode)}?si=yYNozeY4jDLWoKQJ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+	  if(!thisbonzi.mute)newLog({name:thisbonzi.name, msg:embedHtml, replyMsg:'- https://youtu.be/' + data.videoCode, quote:null, bonzi:thisbonzi});
 	  thisbonzi.talk({
-		  text:`- <iframe width="200" height="200" src="https://www.youtube.com/embed/${data.videoCode}?si=yYNozeY4jDLWoKQJ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
+		  text:`- ${embedHtml}`,
 		  quote:null
 	  });
+  });
+  socket.on("byoutube", (data) => {
+	  setByoutube(data.src);
   });
   socket.on("userEvent", (data) => {
 	  let thisbonzi = screenbonzis({id:data.id});
@@ -2630,3 +2740,22 @@ let now = performance.now();
 	if(wB){wB.style.top=nyTop+'px'; wB.style.left=wx+'px'; wB.style.height=WORLD_SIZE+'px';}
 	if(eB){eB.style.top=nyTop+'px'; eB.style.left=ex+'px'; eB.style.height=WORLD_SIZE+'px';}
 }, WORLD_RENDER_TICK_MS);
+document.addEventListener('click', (e) => {
+	let spoiler = e.target.closest('GAY-SPOILER');
+	if(spoiler)spoiler.classList.add('reveal');
+});
+function resetRainbow(el){
+	for(let anim of el.getAnimations()){
+		if(anim.animationName === 'move')anim.startTime = 0;
+	}
+}
+var rainbowSelector = 'gay-rainbow,gay-spoiler,code';
+new MutationObserver(mutations => {
+	for(let mutation of mutations){
+		for(let node of mutation.addedNodes){
+			if(!(node instanceof Element))continue;
+			if(node.matches(rainbowSelector))resetRainbow(node);
+			node.querySelectorAll(rainbowSelector).forEach(resetRainbow);
+		}
+	}
+}).observe(document.body, {childList: true, subtree: true});

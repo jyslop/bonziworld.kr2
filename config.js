@@ -220,21 +220,24 @@ let config =  {
 			let validIdChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_".split("");
 			
 			if(typeof eventData != "string")return;
-			eventData=blankify(eventData);
+			eventData=blankify(eventData).replaceAll('www.','');
 			if(eventData.startsWith("https://youtube.com") || eventData.startsWith("https://youtu.be")){
 				if(eventData.startsWith("https://youtu.be") && eventData.includes(".be/")){
+					console.log("youtu.be'd");
 					eventData = eventData.includes('?') ? eventData.substring(eventData.indexOf('.be/')+4,eventData.indexOf('?')) : eventData.substring(eventData.indexOf('.be/')+4);
 				} else if(eventData.startsWith("https://youtube.com") && eventData.includes('watch?v=')){
+					console.log("youtube.com'd");
 					eventData = eventData.substring(eventData.indexOf('?v=')+3,(eventData.indexOf('?v=')+3)+11);
 				} else {
-					console.error("Invalid: "+eventData);
+					console.log("Invalid: "+eventData);
 					thisSocket.emit("err","Incomplete or invalid URL!");
 					return;
 				}
 			} else if(eventData.length < 12 && eventData.toUpperCase().split("").every(r => validIdChars.includes(r))) {
 				eventData = eventData;
 			} else {
-				console.error("Invalid: "+eventData);
+				console.log("Invalid: "+eventData);
+				console.log(eventData.startsWith("https://youtube.com"));
 				thisSocket.emit("err","Incomplete or invalid video ID!");
 				return;
 			}

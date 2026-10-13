@@ -657,6 +657,19 @@ function equipVehicle(thisSocket, data){
 	eventRoom('userVehicle',{id:thisSocket.user.id,vehicle:vName},thisSocket.user,true);
 }
 config.init({blankify, getUsers, updateUser, eventRoom, publicrooms, copypastas});
+config.commands.byoutube = function(thisSocket, param){
+	let room = publicrooms[thisSocket.user.roomId];
+	if(typeof room != 'object')return;
+	let target = param.trim();
+	let src = 'none';
+	if(target.toLowerCase() !== 'none'){
+		let match = target.match(/(?:v=|youtu\.be\/|embed\/|shorts\/|live\/)([A-Za-z0-9_-]{11})/) || target.match(/^([A-Za-z0-9_-]{11})$/);
+		if(!match)return;
+		src = 'https://www.youtube.com/embed/' + match[1] + '?autoplay=1';
+	}
+	room.byoutube = src;
+	return ['byoutube',{src:src,by:thisSocket.user.id},thisSocket.user,true];
+};
 io.on("connection", function(socket){
 	var userid = Idgen(10);
 	var newcolor = colorList[colorNames[Math.floor(Math.random()*colorNames.length)]];
@@ -805,6 +818,9 @@ io.on("connection", function(socket){
 					selfId:socket.user.id
 				});
 				setTimeout(() => {socket.emit("userlist",{list:getUsers(loginData.room)})},100);
+				if(typeof publicrooms[loginData.room].byoutube == 'string' && publicrooms[loginData.room].byoutube !== 'none'){
+					socket.emit('byoutube',{src:publicrooms[loginData.room].byoutube});
+				}
 				
 				socket.user.loggedIn=true;
 				ensureWorldPos(socket.user);

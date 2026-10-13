@@ -752,27 +752,70 @@ button:active {
     vertical-align: bottom;
 }
 
-@keyframes md_rainbow {
-	from{filter:hue-rotate(0deg);}
-	to{filter:hue-rotate(360deg);}
+.greentext {
+	color: #789922;
 }
-.md-italic {
-	font-style:italic;
+.flag {
+	vertical-align: bottom;
+	width: 1em;
+	height: 1em;
 }
-.md-bold {
-	font-weight:bold;
+gay-big {
+	font-size: 1.5em;
 }
-.md-rainbow {
-	color:red;
-	animation:md_rainbow 4s linear infinite;
+@keyframes move {
+	from {
+		background-position-x: 500px;
+	}
+	to {
+		background-position-x: 0;
+	}
 }
-.md-large {
-	font-size:30px;
+gay-spoiler {
+	background-color: darkslategrey;
+	border-radius: 3px;
+	color: transparent;
+	user-select: none;
+	transition: background-color 0.2s, color 0.2s;
+	cursor: pointer;
 }
-.md-code {
-	background:black;
-	color:white;
-	font-family:monospace;
+gay-spoiler:hover {
+	background-color: #777;
+}
+gay-spoiler.reveal {
+	background-color: #5555;
+	color: black;
+	user-select: all;
+	cursor: auto;
+}
+gay-spoiler:not(.reveal) gay-rainbow {
+	background: none;
+}
+gay-rainbow gay-spoiler:not(.reveal) {
+	background-image: linear-gradient(120deg in hsl longer hue, red, red, red);
+	background-size: 500px;
+	animation: move 2s linear infinite;
+}
+gay-rainbow {
+	background-image: linear-gradient(120deg in hsl longer hue, red, red, red);
+	background-size: 500px;
+	background-clip: text;
+	color: transparent;
+	animation: move 2s linear infinite;
+}
+code {
+	border: 1px solid #bbb;
+	background-color: #ddd;
+	border-radius: 4px;
+	font: monospace;
+	padding: 0 0.2em;
+}
+gay-rainbow code {
+	background-image: linear-gradient(#ddd8), linear-gradient(120deg in hsl longer hue, red, red, red);
+	background-size: 500px;
+	animation: move 2s linear infinite;
+	border-color: #0004;
+	color: black;
 }
 rowbox {
 	display:flex;
@@ -859,11 +902,26 @@ rowbox {
     gap: 5px;
     align-items: center;
 }
+.log_label b {
+    font-family: 'WinXP', Tahoma, sans-serif;
+    font-size: 16px;
+}
+.log_label h6 {
+    margin-left: auto;
+    font-family: 'WinXP', Tahoma, sans-serif;
+    font-size: 12px;
+    font-weight: normal;
+    white-space: nowrap;
+}
 .log_pfp {
-    background-image: url(./img/bonzi/purple.png);
+    background-image: url(../img/bonzi/purple.png);
+    background-repeat: no-repeat;
+    flex-shrink: 0;
     width: 45px;
     height: 45px;
     border-radius: 45px;
     background-position: -78px -39px;
-	image-rendering:auto;
+    image-rendering: auto;
+    border: 1px solid rgba(0,0,0,0.35);
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
 }
