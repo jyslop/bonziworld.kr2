@@ -981,7 +981,7 @@ function newLog(options){
 	var entry = '<div style="position:relative;padding-right:28px;" ><div class="log_label" ><div class="log_pfp" style="background-image:' + logPfpImages(options.bonzi) + '" ></div><b>' + options.name + ':</b>\n<h6 style="color:gray;">' + logTimeString() + '</h6></div>' + replyHtml + '<span style="font-family:\'WinXP\';font-size:18px;">' + options.msg + '</span><button onclick="setReplyTarget(\'' + escapedName + '\',\'' + escapedMsg + '\');" style="position:absolute;top:0;right:0;width:22px;height:22px;padding:0;font-size:11px;line-height:1;" title="Reply">&#x21A9;</button></div><hr>';
 	logtxt += entry;
 	var logContents = document.getElementById('log_contents');
-	if(logContents !== null)logContents.insertAdjacentHTML('beforeend', entry);
+	if(logContents !== null)logContents.insertAdjacentHTML('beforeend', markupify(entry));
 }
 function touchHandler(event){
   var touches = event.changedTouches,first = touches[0],type = "";

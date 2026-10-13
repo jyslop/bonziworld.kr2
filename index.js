@@ -660,7 +660,7 @@ config.init({blankify, getUsers, updateUser, eventRoom, publicrooms, copypastas}
 config.commands.byoutube = function(thisSocket, param){
 	let room = publicrooms[thisSocket.user.roomId];
 	if(typeof room != 'object')return;
-	let target = param.trim();
+	let target = blankify(param.trim());
 	let src = 'none';
 	if(target.toLowerCase() !== 'none'){
 		let match = target.match(/(?:v=|youtu\.be\/|embed\/|shorts\/|live\/)([A-Za-z0-9_-]{11})/) || target.match(/^([A-Za-z0-9_-]{11})$/);
