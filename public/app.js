@@ -1142,6 +1142,7 @@ class Dialog {
         opt.height = opt.height || 300;
         this.x = opt.x || 0;
         this.y = opt.y || 0;
+		this.oncreation = opt.oncreation || (() => {});
         this.onclose = opt.onclose || (() => {});
         this.element = document.createElement("div");
         if (opt.class) this.element.className = opt.class;
@@ -1159,6 +1160,7 @@ class Dialog {
         this.move(this.x, this.y);
         this.element.style.position = "absolute";
         this.element.style.zIndex = lastZ++ + 9999;
+		this.element.querySelector(".window_header").onload = () => {this.oncreation();};
         this.element.querySelector(".window_header").onpointerdown = (e) => {
             dragged = this;
             dragX = e.pageX - this.x;
@@ -1897,6 +1899,11 @@ let roomModify = {
 };
 
 function login(newRoom){
+	if(profileList[0].uses < 2){
+		new Dialog({title:'Welcome!',width:400,height:300,html:`
+			<img src="" id="newuser_slide">
+		`});
+	}
 	socket.connect();
 	if(typeof newRoom == 'undefined')newRoom=$("#login_room").val();
 	listenerNames.forEach(listenerName => {socket.off(listenerName);});
