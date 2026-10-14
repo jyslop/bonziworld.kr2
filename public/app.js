@@ -807,6 +807,7 @@ $(window).load(function(){
 	 document.addEventListener('click',()=>{
 	if(interacted)return;
 	interacted=!interacted;
+	const ost = new Audio('./sound/title.mp3');
 	$("#login_sectionOOBE").css({"display":"block"});
 	let i = 0;
 	 let init = () => {
@@ -816,7 +817,7 @@ $(window).load(function(){
 	 
 	 let newX = `calc(50% - ${(newWidth / 2)}px)`;
 	 let newY = '0px';
-	 let ost = new Audio('./sound/title.mp3');
+	 
 	 ost.play();
 	 if(i < 2){$("#oobeplayback").css({"display":"block","left":newX,"width":newWidth.toString()+"px","height":newHeight.toString()+"px"});
 	 const originalSrc = './img/misc/oobe.gif';
