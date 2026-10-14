@@ -816,7 +816,8 @@ $(window).load(function(){
 	 
 	 let newX = `calc(50% - ${(newWidth / 2)}px)`;
 	 let newY = '0px';
-	 
+	 let ost = new Audio('./sound/title.mp3');
+	 ost.play();
 	 if(i < 2){$("#oobeplayback").css({"display":"block","left":newX,"width":newWidth.toString()+"px","height":newHeight.toString()+"px"});
 	 const originalSrc = './img/misc/oobe.gif';
      oobeplayback.src=originalSrc + "?t=" + new Date().getTime();}//mozilla restores the last played gif frame before tab close????? blatantly fucking retarded
@@ -874,6 +875,7 @@ $(window).load(function(){
 				oobeplaybg.style.display='none'; initSetup.style.display='none';
 				login_sectionOOBE.style.display='none'; 
 				login_sectionUSER.style.display='block';
+				ost.pause();
 				page_login.style.backgroundImage='';};
 		  };
 	 },6000);
