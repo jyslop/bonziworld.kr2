@@ -7,11 +7,15 @@ let copypastas;
 
 var colorList = {
   "red":"/img/bonzi/red.png",
-  "green":"/img/bonzi/green.png",
+  "orange":"/img/bonzi/orange.png",
+  "yellow":"/img/bonzi/yellow.png",
+  "black":"/img/bonzi/black.png",
+  "cyan":"/img/bonzi/cyan.png",
   "blue":"/img/bonzi/blue.png",
   "purple":"/img/bonzi/purple.png",
   "pink":"/img/bonzi/pink.png",
   "black":"/img/bonzi/black.png",
+  "white":"/img/bonzi/white.png",
   "brown":"/img/bonzi/brown.png",
   "bcn":"/img/bonzi/bcn.png",
   "smile":"/img/bonzi/smile.png",
@@ -345,7 +349,7 @@ let config =  {
 		},
 		"noob":(thisSocket,param)=>{
 			if(thisSocket.user.level > 1){
-				thisSocket.user = updateUser(thisSocket.user,{color:"./img/bonzi/noob.webp",tag:"<img src='/img/desktop/icons/wrench_antenna.png' class='tagicon'>"},true);
+				thisSocket.user = updateUser(thisSocket.user,{color:"./img/bonzi/noob.png",tag:"<img src='/img/desktop/icons/wrench_antenna.png' class='tagicon'>"},true);
 				return thisSocket.user;
 			}
 		},

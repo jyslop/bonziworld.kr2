@@ -132,6 +132,30 @@ function blankify(input, maxLength = 2500) {
       "'": '&#39;',
     }[c]));
 }
+let POLL_LIMITS = {title:1000,option:50,minOptions:2,maxOptions:5,perRoom:20,maxPending:5,voteGapMs:250};
+let POLL_ID_PATTERN = /^[a-f0-9]{16}$/;
+let pollStore = {};
+let pollSeq = 0;
+function purgePolls(roomId){
+	Object.keys(pollStore).forEach(pollId => {
+		if(pollStore[pollId].roomId === roomId)delete pollStore[pollId];
+	});
+}
+function trimRoomPolls(roomId){
+	let ids = Object.keys(pollStore).filter(pollId => pollStore[pollId].roomId === roomId);
+	ids.sort((a,b) => pollStore[a].seq - pollStore[b].seq);
+	while(ids.length > POLL_LIMITS.perRoom){
+		delete pollStore[ids.shift()];
+	}
+}
+function cleanPollText(value,maxLength){
+	if(typeof value !== 'string' || value.length > maxLength)return null;
+	let cleaned = blankify(value,maxLength);
+	return cleaned.length > 0 ? cleaned : null;
+}
+function isPlainObject(value){
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 function getUsers(roomId){
 	let result = [];
 	publicrooms[roomId].users.forEach(fullUser => {
@@ -142,7 +166,9 @@ function getUsers(roomId){
 }
 function findUser(roomId,guid){
 	let result = -1;
-	publicrooms[roomId].users.forEach(r => {if(r.id == guid){result = r;}});
+	publicrooms[roomId].users.forEach(r => {if(r.id == guid ){result = r;}; if(typeof r == 'string'){if(r.name.toLowerCase() == guid.toLowerCase()){result=r;}}});
+	
+
 	return result;
 }
 function hasUser(roomId,guid){
@@ -169,7 +195,7 @@ function updateUser(originalUser,socketData,localDisplay=false){
 	let result = Object.assign(originalUser,socketData);
 	let currentRoom = publicrooms[originalUser.roomId];
 	if(typeof currentRoom != 'object'){
-		publicrooms[originalUser.roomId]={isPublic:false,owner:originalUser.id,users:[]};
+		publicrooms[originalUser.roomId]={isPublic:false,owner:originalUser.id,users:[],props:generateProps()};
 		currentRoom = publicrooms[result.roomId];
 		result.roomIndex = currentRoom.users.length;
 	}
@@ -315,11 +341,33 @@ const ON_FOOT_COOLDOWN_MAX_MS = 5000;
 const WASD_TICK_MS = 100;
 const WORLD_SYNC_INTERVAL_MS = 2500; 
 const SYNC_EVERY_TICKS = Math.round(WORLD_SYNC_INTERVAL_MS / WASD_TICK_MS);
-const CRASH_SPEED_THRESHOLD = 4; 
+const CRASH_SPEED_THRESHOLD = 4;
+let BUSH_AMOUNT = 500; 
 let moveCooldowns = {}; 
 let wasdState = {}; 
 let tickCount = 0;
 
+
+function generateProps(){
+	let props = [];
+	for(let i = 0; i < BUSH_AMOUNT; i++){
+		let x, y;
+		do {
+			x = Math.floor(Math.random()*WORLD_SIZE);
+			y = Math.floor(Math.random()*WORLD_SIZE);
+		} while(Math.hypot(x-WORLD_SIZE/2, y-WORLD_SIZE/2) < 500);
+		props.push({img:'./img/desktop/bush.png', w:128, h:128, x:x, y:y, impassable:true, overlay:false});
+	}
+	return props;
+}
+
+publicrooms.default.props = generateProps();
+
+function propBlocksPoint(roomId, x, y){
+	let room = publicrooms[roomId];
+	if(!room || !Array.isArray(room.props))return false;
+	return room.props.some(p => p.impassable && Math.abs(x-p.x) < p.w/2 && Math.abs(y-p.y) < p.h/2);
+}
 
 function ensureWorldPos(user){
 	let spr = 300;
@@ -386,6 +434,13 @@ setInterval(() => {
 			let nextY = u.posY + u.velY*10;
 
 			let speed = Math.sqrt(u.velX*u.velX+u.velY*u.velY);
+			if(propBlocksPoint(roomId, nextX, nextY)){
+				if(speed >= CRASH_SPEED_THRESHOLD){
+					destroyVehicle(u);
+					delete wasdState[u.id];
+				}
+				return;
+			}
 			let hitBorder = nextX <= 0 || nextX >= WORLD_SIZE || nextY <= 0 || nextY >= WORLD_SIZE;
 
 			u.posX = Math.max(0, Math.min(WORLD_SIZE, nextX));
@@ -449,6 +504,7 @@ function moveTo(thisSocket, data){
 
 	x = Math.max(0, Math.min(WORLD_SIZE, x));
 	y = Math.max(0, Math.min(WORLD_SIZE, y));
+	if(propBlocksPoint(u.roomId, x, y))return;
 
 	let dx = x - u.posX, dy = y - u.posY;
 	let dist = Math.hypot(dx, dy);
@@ -719,6 +775,8 @@ io.on("connection", function(socket){
 		    socket.removeAllListeners('msg');
 		socket.removeAllListeners('typing');
 		socket.removeAllListeners('command');
+		socket.removeAllListeners('poll');
+		socket.removeAllListeners('vote');
 		if(isFucked(socket.user.ip)){
 			socket.emit("err","No proxies allowed right now");
 			return;
@@ -817,6 +875,7 @@ io.on("connection", function(socket){
 					room:loginData.room,
 					selfId:socket.user.id
 				});
+				socket.emit('props', publicrooms[loginData.room].props || []);
 				setTimeout(() => {socket.emit("userlist",{list:getUsers(loginData.room)})},100);
 				if(typeof publicrooms[loginData.room].byoutube == 'string' && publicrooms[loginData.room].byoutube !== 'none'){
 					socket.emit('byoutube',{src:publicrooms[loginData.room].byoutube});
@@ -896,6 +955,7 @@ if (room) {
     room.users = room.users.filter(u => u.id !== targetUser.id);
     if (room.users.length < 1) {
         delete publicrooms[targetUser.roomId];
+        purgePolls(targetUser.roomId);
     }
 }
 if (targetSocket) {
@@ -941,6 +1001,50 @@ if (targetSocket) {
 							true
 						);
 				});
+				socket.on("poll", (data) => {
+					if(!isPlainObject(data))return;
+					if(!Array.isArray(data.options))return;
+					if(data.options.length < POLL_LIMITS.minOptions || data.options.length > POLL_LIMITS.maxOptions)return;
+					let title = cleanPollText(data.title,POLL_LIMITS.title);
+					if(title === null)return;
+					let options = [];
+					for(let i = 0; i < data.options.length; i++){
+						let option = cleanPollText(data.options[i],POLL_LIMITS.option);
+						if(option === null)return;
+						options.push(option);
+					}
+					if(typeof publicrooms[socket.user.roomId] !== 'object')return;
+					if(socket.user.msgAttempts >= POLL_LIMITS.maxPending)return;
+					socket.user.msgAttempts++;
+					setTimeout(() => {
+						let roomId = socket.user.roomId;
+						if(typeof publicrooms[roomId] !== 'object' || !hasUser(roomId,socket.user.id)){
+							socket.user.msgAttempts--;
+							return;
+						}
+						let pollId = crypto.randomBytes(8).toString('hex');
+						pollSeq++;
+						pollStore[pollId] = {roomId:roomId,optionCount:options.length,votes:Object.create(null),seq:pollSeq};
+						trimRoomPolls(roomId);
+						let payload = {id:socket.user.id,poll:pollId,title:title,options:options};
+						eventRoom("poll",payload,socket.user,true);
+						socket.user.msgAttempts--;
+					},socket.user.msgAttempts*config.rateLimit);
+				});
+				socket.on("vote", (data) => {
+					if(!isPlainObject(data))return;
+					if(typeof data.poll !== 'string' || !POLL_ID_PATTERN.test(data.poll))return;
+					if(typeof data.vote !== 'number' || !Number.isInteger(data.vote))return;
+					let poll = pollStore[data.poll];
+					if(!poll || poll.roomId !== socket.user.roomId)return;
+					if(data.vote < 0 || data.vote >= poll.optionCount)return;
+					let now = Date.now();
+					if(now - (socket.lastVoteAt || 0) < POLL_LIMITS.voteGapMs)return;
+					socket.lastVoteAt = now;
+					if(poll.votes[socket.user.id] === data.vote)return;
+					poll.votes[socket.user.id] = data.vote;
+					eventRoom("vote",{poll:data.poll,id:socket.user.id,vote:data.vote},socket.user,true);
+				});
 				socket.on("command", (data) => {
 					if(typeof data == "object"){
 						if(typeof data.type !== "string" || typeof data.param !== "string")return;
@@ -971,6 +1075,7 @@ if (targetSocket) {
 
     if (room.users.length < 1) {
         delete publicrooms[socket.user.roomId];
+        purgePolls(socket.user.roomId);
     }
 if(typeof skiddieWatch[socket.user.ip] == "object"){
 						if(skiddieWatch[socket.user.ip].instances > 0 && socket.user.loggedIn){skiddieWatch[socket.user.ip].instances--; skiddieWatch[socket.user.ip].lastLogged=0;}

@@ -53,5 +53,53 @@ module.exports = {
     "equippedVehicle": null,
     "company": null,
     "createdIp": "127.0.0.1"
+  },
+  "7beNVLvyCUibwyk3uFo7": {
+    "coins": 57,
+    "hats": [],
+    "vehicles": [],
+    "equippedVehicle": null,
+    "company": null,
+    "createdIp": "127.0.0.1"
+  },
+  "gHvomTQVVkrE7Hd98zqJ": {
+    "coins": 0,
+    "hats": [],
+    "vehicles": [],
+    "equippedVehicle": null,
+    "company": null,
+    "createdIp": "35.144.10.17"
+  },
+  "cuckold9000": {
+    "coins": 23,
+    "hats": [],
+    "vehicles": [],
+    "equippedVehicle": null,
+    "company": null,
+    "createdIp": "127.0.0.1"
+  },
+  "Cuncp2G6cNagfdNJ8QTD": {
+    "coins": 0,
+    "hats": [],
+    "vehicles": [],
+    "equippedVehicle": null,
+    "company": null,
+    "createdIp": "127.0.0.1"
+  },
+  "LKUgZeF2gNSPKHmnJYsA": {
+    "coins": 0,
+    "hats": [],
+    "vehicles": [],
+    "equippedVehicle": null,
+    "company": null,
+    "createdIp": "127.0.0.1"
+  },
+  "qSWqTTv8QkqNjD3Gufmu": {
+    "coins": 0,
+    "hats": [],
+    "vehicles": [],
+    "equippedVehicle": null,
+    "company": null,
+    "createdIp": "127.0.0.1"
   }
 };

@@ -8,6 +8,7 @@
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 
   <link rel="stylesheet" type="text/css" href="/css/style.css">
+  <link rel="stylesheet" type="text/css" id="content_theme">
   <link rel="stylesheet" type="text/css" href="windows.css">
   <link rel="icon" href="./favicons/favicon.ico" sizes="32x32">
   
@@ -58,19 +59,19 @@
       <p class="icon_label">Bonzi Log</p>
     </div>
 	<div id="brk"></div>
-    <div id="my_bonzi" class="icon" style=" background-image: url(./img/desktop/icons/mybonzi.png);">
+    <div id="my_bonzi" class="icon" >
       <p class="icon_label">My Settings</p>
     </div>
     
 	<div id="brk"></div>
-	<div id="media_upload" class="icon" style="background-image: url('./img/desktop/icons/media_upload.png');">
+	<div id="media_upload" class="icon" >
   		<p class="icon_label">Images And Videos</p>
 	</div>
     </div>
 	<div class="icon" id="rooms_view" style="position:absolute;left:85%;top:28px;width:64px;height:64px;background-image: url('./img/desktop/icons/rooms.png');"></div>
 	<div id="startmenu">
 		<div class="startbanner"><div style="background: linear-gradient(320deg, #4a0086, rgb(195 144 236));border:2px solid white;border-radius:4px;overflow:hidden;width: 50px;height: 50px;filter: drop-shadow(2px 2px 2px black);">
-    <div style="
+    <div id="mypfp" style="
     background: url(./img/bonzi/purple.png);
     width: 200px;
     height: 160px;
@@ -78,7 +79,7 @@
     background-size: 800% 1000%;
 "></div>
 </div><b class="start_title">Start Menu</b></div>
-		<div style="background-image:linear-gradient(45deg, white, blue, white);width:100%;height:4px;"></div>
+		<div class="start_accent"></div>
 		<div class="startitems">
 			<div class="startselection" id="bonzivm_start">
 				<img src="./img/desktop/icons/bonzivm.png" width="32" height="32">

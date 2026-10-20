@@ -3,11 +3,70 @@ let blessedHats = ['clippy','peedy','whiteobama','qmark','yahu','sunglasses','sp
 let Themes = {
 	"XP":"./themes/xp.css",
 	"Vista":"./themes/vista.css",
-	"Default":"",
+	"Default":"./css/style.css",
 	"Classic":"./themes/classic.css",
 };
+function writeCustomCSS(css){
+	let styleTag = document.getElementById("bonzi-custom-css");
+	if(!styleTag){
+		styleTag = document.createElement("style");
+		styleTag.id = "bonzi-custom-css";
+		document.head.appendChild(styleTag);
+	}
+	styleTag.textContent = css;
+	let textarea = document.getElementById("css_tab_textarea");
+	if(textarea && textarea.value !== css)textarea.value = css;
+}
 
-profileList = profileList == null ? [ {name:'Anonymous',color:'purple',hats:[],godmodePass:null,bonzicoinPass:null,uses:0} ] : profileList;
+function saveCSSCookie(value){
+	setCookie("custom_bonzi_css", encodeURIComponent(encodeURIComponent(value)), 30);
+}
+function applyCustomCSS(css,save=true){
+	writeCustomCSS(css);
+	if(save)saveCSSCookie(css);
+}
+function loadSavedCSS(){
+	let saved = getCookie("custom_bonzi_css");
+	if(!saved)return "";
+	try{
+		return decodeURIComponent(saved);
+	}catch(e){
+		return saved;
+	}
+}
+function isCSSUrl(value){
+	return /^(https?:\/\/|\.{0,2}\/)[^\s{};]+$/.test(value.trim());
+}
+function fetchCSS(url){
+	return fetch(url).then(response => {
+		if(!response.ok)throw new Error("HTTP " + response.status);
+		return response.text();
+	});
+}
+function loadCustomCSS(){
+	let saved = loadSavedCSS();
+	if(!saved)return;
+	if(isCSSUrl(saved)){
+		fetchCSS(saved.trim())
+			.then(css => writeCustomCSS(css))
+			.catch(err => console.error("loadCustomCSS failed:", err));
+	} else {
+		writeCustomCSS(saved);
+	}
+}
+function swapTheme(url){
+	if(!url){
+		applyCustomCSS("");
+		return;
+	}
+	fetchCSS(url)
+		.then(css => {
+			writeCustomCSS(css);
+			saveCSSCookie(url);
+		})
+		.catch(err => console.error("swapTheme failed:", err));
+}
+profileList = profileList == null ? [ {name:'Anonymous',color:'purple',hats:[],godmodePass:null,bonzicoinPass:null,uses:0,themeType:'XP'} ] : profileList;
 if(typeof profileList[0].bonzicoinPass == 'undefined')profileList[0].bonzicoinPass=null;
 if(typeof profileList[0].optOutMovement == 'undefined')profileList[0].optOutMovement=false;
 let disconnectHandle = () => {};
@@ -27,7 +86,7 @@ var replyTarget = null;
 var worldActive = false;
 var myWallet = {hasAccount:false, coins:0, hats:[], vehicles:[], equippedVehicle:null, company:null};
 
-let listenerNames = ["msg","asshole","userlist","leave","newuser","room","userEvent","wallet","stocksUpdate","bonzicoinErr","coinGiftReceived","stockPosition","stockSold","userMoveTo","worldSync","userVehicle","vehicleDestroyed","vehiclePresets","youtube","byoutube"];
+let listenerNames = ["msg","poll","vote","asshole","userlist","leave","newuser","room","userEvent","wallet","stocksUpdate","bonzicoinErr","coinGiftReceived","stockPosition","stockSold","userMoveTo","worldSync","userVehicle","vehicleDestroyed","vehiclePresets","props","youtube","byoutube"];
 function setCookie(cname,cvalue,exdays) {
   var d = new Date();
   d.setTime(d.getTime() + (exdays*24*60*60*1000));
@@ -203,7 +262,7 @@ function loadArray(arrayName){
 	}
 }
 var logtxt = `
-	<i>Welcome to BonziWORLD XP</i>
+	<i>Welcome to BonziWORLD.kr!</i>
 	<hr>
 `;
 
@@ -392,7 +451,42 @@ function hidePoWIndicator() {
 	let el = document.getElementById('pow_indicator');
 	if(el) el.remove();
 }
-
+function blessedPopup() {
+	return new Dialog({
+		title: "Blessmode",
+		class: "flex_window",
+		html: `
+			<div class="blessed_body">
+				<h1><marquee>YOU'VE BEEN BLESSED!</marquee></h1>
+				Blessed is a VIP-like status given to users who I like.<br>
+				You now have access to:<br>
+				<ul>
+					<li> <b>Mutlihatting</b>: Use the /hat command with up to 3 hats. Try <var>/hat dank tophat</var>.
+					<li> <b>Skins:</b> 4 custom skins
+					<li> <b>Hats:</b> 4 extra hats
+				</ul>
+				<h3>Skins</h3>
+				<div class="roulette">
+					<div class="card angel" onclick="cmd('angel')"></div>
+					<div class="card glow" onclick="cmd('glow')"></div>
+					<div class="card noob" onclick="cmd('noob')"></div>
+					<div class="card gold" onclick="cmd('gold')"></div>
+				</div>
+				<h3>Hats</h3>
+				<div class="roulette">
+					<div class="cardhat dank" onclick="cmd('hat dank')"></div>
+					<div class="cardhat illuminati" onclick="cmd('hat illuminati')"></div>
+					<div class="cardhat cigar" onclick="cmd('hat cigar')"></div>
+					<div class="cardhat propeller" onclick="cmd('hat propeller')"></div>
+				</div>
+			</div>
+		`,
+		x: 300,
+		y: 400,
+		width: 600,
+		height: 400,
+	});
+}
 let applets = {
 	"settings": { 
         buttonId: "my_bonzi", 
@@ -409,7 +503,7 @@ let applets = {
                 height: '560',
                 html: `
                 <div style="display:flex; overflow: hidden !important;" bis_skin_checked="1">
-                    <div style="width: 99px; height:497px; background: linear-gradient(rgb(188 160 230), rgb(130 102 169)); display:flex; flex-direction:column; align-items:center; padding:10px" bis_skin_checked="1">
+                    <div class="settings_col" bis_skin_checked="1">
                         <div style="width:95px; height:90px; background:white; border-radius: 4px; font-size:12px; text-align:center;" bis_skin_checked="1">
                             <div style="width: 89px; height: 18px; background: indigo; border-radius: 4px 4px 0px 0px; padding: 3px; font-size: 12px; color: white; font-weight: bold; text-shadow: 1px 1px black;" bis_skin_checked="1">
                                 Menu
@@ -472,12 +566,6 @@ let applets = {
                 }
             });
 
-            let styleTag = document.getElementById("bonzi-custom-css");
-            if (!styleTag) {
-                styleTag = document.createElement("style");
-                styleTag.id = "bonzi-custom-css";
-                document.head.appendChild(styleTag);
-            }
 			var btnMyBonzi = document.getElementById("tab_btn_mybonzi");
 var btnCss = document.getElementById("tab_btn_css");
 var btnPrefs = document.getElementById("tab_btn_prefs");
@@ -558,11 +646,8 @@ btnMyBonzi.addEventListener("click", (e) => {
 					scatterOutOfBoundsBonzis();
 				}
 			});
-            var savedCSS = getCookie("custom_bonzi_css");
-            if (savedCSS) {
-                cssTextarea.value = savedCSS;
-                styleTag.innerHTML = savedCSS;
-            }
+             var appliedStyle = document.getElementById("bonzi-custom-css");
+            if (appliedStyle) cssTextarea.value = appliedStyle.textContent;
 
             var savedBgColor = getCookie("custom_bonzi_bg");
             if (savedBgColor) {
@@ -573,8 +658,7 @@ btnMyBonzi.addEventListener("click", (e) => {
             
 
             cssTextarea.addEventListener("input", () => {
-                styleTag.innerHTML = cssTextarea.value;
-                setCookie("custom_bonzi_css", cssTextarea.value, 30);
+                applyCustomCSS(cssTextarea.value);
             });
 
             colorRamp.addEventListener("input", () => {
@@ -588,7 +672,7 @@ btnMyBonzi.addEventListener("click", (e) => {
                 setCookie("custom_bonzi_bg", colorRamp.value, 30);
 		});
 
-            let clrs = ['red', 'brown', 'green', 'blue', 'purple', 'pink', 'black']; 
+            let clrs = ['red','orange','yellow', 'green', 'cyan','blue', 'purple', 'pink', 'black','white']; 
             let currentRow = 1; 
 for (let i = 0; i < clrs.length; i++) {if (i >= clrs.length / 2) currentRow = 2;document.getElementById('row_color' + currentRow).insertAdjacentHTML('beforeend',`
   <button onclick="socket.emit('command',{type:'color',param:'${clrs[i]}'}); profileList[0].color='${clrs[i]}';"> 
@@ -623,6 +707,7 @@ ${hatName} ${hatStat}</button> `);});
 				${logtxt}
 			</div>
 			`});
+			mountPolls(document.getElementById('log_contents'));
 		}
 	},
 	"roomsview":{
@@ -781,6 +866,8 @@ $(window).load(function(){
   if (savedBgColor) {
     applyBgColor(savedBgColor);
   }
+  loadCustomCSS();
+  
   var savedHideMarquee = getCookie("hide_marquee_bg");
   if (savedHideMarquee === "true") {
     document.getElementById("content").classList.add("hide_marquee_bg");
@@ -973,6 +1060,145 @@ function logPfpImages(logBonzi){
 	layers.push("url('" + colorUrl + "')");
 	return layers.join(',');
 }
+function updateStartPfp(mine){
+	var el = document.getElementById('mypfp');
+	if(!el || !mine || !mine.colorUrl)return;
+	var images = logPfpImages(mine);
+	var count = images.split('url(').length - 1;
+	var sizes = [];
+	for(let i = 1; i < count; i++)sizes.push('200px 160px');
+	sizes.push('800% 1000%');
+	el.style.backgroundImage = images;
+	el.style.backgroundSize = sizes.join(',');
+	el.style.backgroundRepeat = 'no-repeat';
+	el.style.backgroundPosition = '-20px -11px';
+}
+var pollColors = [
+	["lime","#cfc","#060"],
+	["red","#fcc","#600"],
+	["#0055ff","#cceeff","#036"],
+	["yellow","#ffc","#660"],
+	["magenta","#fcf","#606"]
+];
+var pollRegistry = Object.create(null);
+var pollOrder = [];
+function registerPoll(pollId,title,options){
+	pollRegistry[pollId] = {title:title,options:options,votes:Object.create(null),elements:[]};
+	pollOrder.push(pollId);
+	while(pollOrder.length > 50){
+		delete pollRegistry[pollOrder.shift()];
+	}
+}
+function refreshPoll(pollId){
+	let poll = pollRegistry[pollId];
+	if(!poll)return;
+	let counts = new Array(poll.options.length).fill(0);
+	Object.keys(poll.votes).forEach(voterId => {
+		let picked = poll.votes[voterId];
+		if(picked >= 0 && picked < counts.length)counts[picked]++;
+	});
+	let total = counts.reduce((sum,count) => sum + count,0);
+	poll.elements.forEach(element => {
+		element.querySelectorAll('.poll_option').forEach((row,i) => {
+			let percent = total > 0 ? counts[i] / total * 100 : 100 / counts.length;
+			let palette = pollColors[i % pollColors.length];
+			row.querySelector('.option_number').textContent = counts[i];
+			row.style.backgroundImage = 'linear-gradient(to right, ' + palette[0] + ' ' + percent + '%, ' + palette[1] + ' ' + percent + '%)';
+			row.classList.toggle('poll_selected',poll.votes[myId] === i);
+		});
+	});
+}
+function createPollElement(pollId){
+	let poll = pollRegistry[pollId];
+	if(!poll)return null;
+	poll.elements = poll.elements.filter(existing => existing.isConnected);
+	let element = document.createElement('div');
+	element.className = 'poll';
+	let title = document.createElement('div');
+	title.className = 'poll_title';
+	title.innerHTML = markupify(poll.title);
+	element.appendChild(title);
+	poll.options.forEach((option,i) => {
+		let palette = pollColors[i % pollColors.length];
+		let row = document.createElement('div');
+		row.className = 'poll_option';
+		row.style.borderColor = palette[2];
+		let label = document.createElement('span');
+		label.className = 'option_label';
+		label.innerHTML = markupify(option);
+		let number = document.createElement('span');
+		number.className = 'option_number';
+		number.textContent = '0';
+		row.appendChild(label);
+		row.appendChild(document.createTextNode(': '));
+		row.appendChild(number);
+		row.onclick = () => {
+			socket.emit('vote',{poll:pollId,vote:i});
+		};
+		element.appendChild(row);
+	});
+	poll.elements.push(element);
+	refreshPoll(pollId);
+	return element;
+}
+function mountPolls(root){
+	if(!root)return;
+	root.querySelectorAll('.poll_mount').forEach(mount => {
+		let pollId = mount.getAttribute('data-poll');
+		if(mount.firstChild || !pollRegistry[pollId])return;
+		let element = createPollElement(pollId);
+		if(element)mount.appendChild(element);
+	});
+}
+function openPollCreator(){
+	if(document.getElementById('poll_title_input')){errs["applet_open"](); return;}
+	let dialog = new Dialog({title:"Poll Creator",x:150,y:100,width:300,height:375,html:`
+		<div class="poll-creator-body">
+			<textarea id="poll_title_input" class="poll-title" placeholder="Ask a question" maxlength="1000"></textarea>
+			<hr>
+			Options:
+			<div class="poll-options"></div>
+			<div class="poll-buttons">
+				<button class="poll-add-option">Add Option</button>
+				<button class="poll-create">Create Poll</button>
+			</div>
+		</div>
+	`});
+	let root = dialog.element;
+	let list = root.querySelector('.poll-options');
+	let addButton = root.querySelector('.poll-add-option');
+	let syncRows = () => {
+		let rows = list.querySelectorAll('.poll-option-row');
+		rows.forEach((row,i) => {
+			row.querySelector('input').placeholder = 'Option ' + (i + 1);
+			row.querySelector('.poll-delete-option').disabled = rows.length <= 2;
+		});
+		addButton.disabled = rows.length >= 5;
+	};
+	let addRow = () => {
+		if(list.children.length >= 5)return;
+		let row = document.createElement('div');
+		row.className = 'poll-option-row';
+		row.innerHTML = '<input type="text" maxlength="50"><button class="poll-delete-option">X</button>';
+		row.querySelector('.poll-delete-option').onclick = () => {
+			if(list.children.length <= 2)return;
+			row.remove();
+			syncRows();
+		};
+		list.appendChild(row);
+		syncRows();
+	};
+	addRow();
+	addRow();
+	addButton.onclick = addRow;
+	root.querySelector('.poll-create').onclick = () => {
+		let title = root.querySelector('.poll-title').value.trim();
+		let values = [...list.querySelectorAll('input')].map(input => input.value.trim()).filter(value => value.length > 0);
+		if(title.length < 1 || values.length < 2)return;
+		socket.emit('poll',{title:title,options:values});
+		root.remove();
+	};
+}
 function newLog(options){
 	var replyHtml = '';
 	if(options.quote && options.quote.name && options.quote.msg){
@@ -981,7 +1207,7 @@ function newLog(options){
 	var replyMsg = typeof options.replyMsg == 'string' ? options.replyMsg : options.msg;
 	var escapedName = options.name.replace(/'/g,"&#39;").replace(/"/g,"&quot;");
 	var escapedMsg = replyMsg.replace(/'/g,"&#39;").replace(/"/g,"&quot;");
-	var entry = '<div style="position:relative;padding-right:28px;" ><div class="log_label" ><div class="log_pfp" style="background-image:' + logPfpImages(options.bonzi) + '" ></div><b>' + options.name + ':</b>\n<h6 style="color:gray;">' + logTimeString() + '</h6></div>' + replyHtml + '<span style="font-family:\'WinXP\';font-size:18px;">' + options.msg + '</span><button onclick="setReplyTarget(\'' + escapedName + '\',\'' + escapedMsg + '\');" style="position:absolute;top:0;right:0;width:22px;height:22px;padding:0;font-size:11px;line-height:1;" title="Reply">&#x21A9;</button></div><hr>';
+	var entry = '<div style="position:relative;padding-right:28px;" ><div class="log_label" ><div class="log_pfp" style="background-image:' + logPfpImages(options.bonzi) + '" ></div><b>' + options.name + ':</b>\n<h6 style="color:gray;">' + logTimeString() + '</h6></div>' + replyHtml + '<span class="log_cont">' + options.msg + '</span><button onclick="setReplyTarget(\'' + escapedName + '\',\'' + escapedMsg + '\');" style="position:absolute;top:0;right:0;width:22px;height:22px;padding:0;font-size:11px;line-height:1;" title="Reply">&#x21A9;</button></div><hr>';
 	logtxt += entry;
 	var logContents = document.getElementById('log_contents');
 	if(logContents !== null)logContents.insertAdjacentHTML('beforeend', markupify(entry));
@@ -1088,12 +1314,15 @@ function uploadPopup(initialFile) {
         let formData = new FormData();
         formData.append("reqtype", "fileupload");
         formData.append("fileToUpload", blob);
-        formData.append("time", "1h");
-        let response = await fetch("https://litterbox.catbox.moe/resources/internals/api.php", {
+        let response = await fetch("https://catbox.moe/user/api.php", {
             method: "POST",
             body: formData,
         });
-        let url = await response.text();
+        let url = (await response.text()).trim();
+        if (!response.ok || url.indexOf("https://") !== 0) {
+            button.textContent = "Upload failed, retry";
+            return;
+        }
         socket.emit("command",{type:"media",param:url});
         dialog.element.remove();
     };
@@ -1192,11 +1421,15 @@ class Dialog {
 }
 var colorCache = {
   "red":"/img/bonzi/red.png",
-  "green":"/img/bonzi/green.png",
+  "orange":"/img/bonzi/orange.png",
+  "yellow":"/img/bonzi/yellow.png",
+  "black":"/img/bonzi/black.png",
+  "cyan":"/img/bonzi/cyan.png",
   "blue":"/img/bonzi/blue.png",
   "purple":"/img/bonzi/purple.png",
   "pink":"/img/bonzi/pink.png",
   "black":"/img/bonzi/black.png",
+  "white":"/img/bonzi/white.png",
   "brown":"/img/bonzi/brown.png",
   "bcn":"/img/bonzi/bcn.png",
   "smile":"/img/bonzi/smile.png",
@@ -1254,6 +1487,7 @@ function bonzi(colorurl,left,top,property){
   var currentHats = property.hats || [];
   this.hats = currentHats;
   this.colorUrl = colorurl;
+  if(localId === myId)updateStartPfp(this);
   var hatImgCache = {};
 
   var canvas = document.getElementById(localId);
@@ -1375,6 +1609,31 @@ var animationPlayback = (animationData,playType) => {
     if(properties.type == "idle"){
       draw(0,0);
     } 
+	if(properties.type == "grin"){
+      let x = 200;
+      let y = 0;
+      var col = columns * width - width - width - width - width - width - width - width - width - width - width;
+      var row = 0;
+	  let newTick = this.frameTick;
+	  let waitOffset = 0;
+        let grinFrames = [
+		    [12,11],[13,11],[14,11],[15,11],[16,11],[17,11],[1,12],[2,12],[3,12],null,
+			[3,12],[2,12],[1,12],[17,11],[16,11],[15,11],[14,11],[13,11],[12,11]
+		];
+		grinFrames.forEach((frameInfo,i) => {
+			setTimeout(() => {
+				if(frameInfo != null){
+					toFrame(...frameInfo);
+				} else {
+					waitOffset=500;
+				}
+				if(i === grinFrames.length-1){
+					draw(0,0);
+				}
+			},(i*newTick)+waitOffset);
+		});
+
+    }
     if(properties.type == "surf_right"){
       let x = 200;
       let y = 0;
@@ -1518,6 +1777,7 @@ var animationPlayback = (animationData,playType) => {
       this.hats = currentHats;
       drawHats();
     }
+    if(localId === myId)updateStartPfp(this);
   }
   this.leave = (instant=false) => {
 		let leaveFrames = [
@@ -1544,6 +1804,25 @@ var animationPlayback = (animationData,playType) => {
   this.stopDrag = () => { mousestat = "up"; };
   this.draw = draw;
   this.talk = talk;
+  this.poll = (data) => {
+    if(this.mute == true)return;
+    let bubble = document.getElementById("chat_" + localId);
+    let point = document.getElementById("point_" + localId);
+    if(!bubble || !point)return;
+    let element = createPollElement(data.poll);
+    if(!element)return;
+    bubble.textContent = '';
+    bubble.appendChild(element);
+    bubble.style.display = "block";
+    point.style.display = "block";
+    speak.play(markupify(data.title,true).replaceAll('[[',''), {pitch: property.pitch, speed: property.speed}, () => {});
+    setTimeout(() => {
+      if(bubble.contains(element)){
+        bubble.style.display = "none";
+        point.style.display = "none";
+      }
+    },30000);
+  };
   this.update = update;
   this.parseEvents = (eventArray) => {
 	  let presetFrames = {
@@ -1842,6 +2121,7 @@ function reconnect(newRoom) {
 		setByoutube('none');
 		resetUsers([]); 
 		worldActive = false;
+		worldProps = [];
 		targetMode = false;
 		myVehicle = null;
 		wasdKeys = {up:false,down:false,left:false,right:false};
@@ -1902,6 +2182,7 @@ let roomModify = {
 };
 
 function login(newRoom){
+	profileList[0].uses = (typeof profileList[0].uses === 'number' ? profileList[0].uses : 0) + 1;
 	if(profileList[0].uses < 2){
 		new Dialog({title:'Welcome!',width:400,height:300,html:`
 			<img src="" id="newuser_slide">
@@ -1963,7 +2244,11 @@ function login(newRoom){
     if(e.key == 'Enter') sendMsg();
   };
   
+  if(!document.getElementById('poll_start')){
+    document.querySelector('#startmenu .startitems').insertAdjacentHTML('beforeend','<div class="startbreak"></div><div class="startselection" id="poll_start"><img src="./img/desktop/icons/poll.png" width="32" height="32"><p><b class="select_title">Poll Creator</b><br><span class="select_description">Ask the room a question and let them vote.</span></p></div>');
+  }
   var clickhandlers = [
+    {id: "#poll_start", func: openPollCreator},
     {id: "#chat_send", func: () => {
       sendMsg();
     }},
@@ -2128,6 +2413,7 @@ setInterval(unfuck,5000);
   socket.on("userlist", (data) => {
 	document.getElementById('users_online').innerText = data.list.length;
 	resetUsers(data.list);
+	updateStartPfp(screenbonzis({id:myId}));
   });
   socket.on("newuser", (data) => {
 	document.getElementById('users_online').innerText = parseInt(document.getElementById('users_online').innerText)+1;
@@ -2156,6 +2442,28 @@ setInterval(unfuck,5000);
     if(!thisbonzi.mute)newLog({name:thisbonzi.name, msg:newMsg, quote: data.quote || null, bonzi:thisbonzi});
     thisbonzi.talk({text: newMsg, quote: data.quote || null});
   });
+  socket.on("poll", (data) => {
+    if(typeof data !== 'object' || data === null)return;
+    if(typeof data.id !== 'string' || typeof data.poll !== 'string' || !/^[a-f0-9]{16}$/.test(data.poll))return;
+    if(typeof data.title !== 'string' || data.title.length > 6000)return;
+    if(!Array.isArray(data.options) || data.options.length < 2 || data.options.length > 5)return;
+    if(!data.options.every(option => typeof option === 'string' && option.length <= 300))return;
+    if(pollRegistry[data.poll])return;
+    let thisbonzi = screenbonzis({id: data.id});
+    if(!thisbonzi || typeof thisbonzi.poll !== 'function' || thisbonzi.mute)return;
+    registerPoll(data.poll,data.title,data.options);
+    newLog({name:thisbonzi.name, msg:'(POLL) ' + data.title + '<div class="poll_mount" data-poll="' + data.poll + '"></div>', replyMsg:'(POLL)', bonzi:thisbonzi});
+    mountPolls(document.getElementById('log_contents'));
+    thisbonzi.poll(data);
+  });
+  socket.on("vote", (data) => {
+    if(typeof data !== 'object' || data === null)return;
+    if(typeof data.poll !== 'string' || typeof data.id !== 'string' || !Number.isInteger(data.vote))return;
+    let poll = pollRegistry[data.poll];
+    if(!poll || data.vote < 0 || data.vote >= poll.options.length)return;
+    poll.votes[data.id] = data.vote;
+    refreshPoll(data.poll);
+  });
   socket.on("youtube", (data) => {
 	  let thisbonzi = screenbonzis({id: data.by});
 	  let embedHtml = `<iframe width="200" height="200" src="https://www.youtube.com/embed/${encodeURIComponent(data.videoCode)}?si=yYNozeY4jDLWoKQJ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
@@ -2173,11 +2481,16 @@ setInterval(unfuck,5000);
 	  let eventList = data.events;
 	  thisbonzi.parseEvents(eventList);
   });
-  socket.on("asshole", (data) => {
+
+socket.on("asshole", (data) => {
     let thisbonzi = screenbonzis({id: data.by});
-	let queue = ["Hey, " + data.to + "!","You're a fucking asshole!"];
-    queue.forEach((queueText,i) => { setTimeout(() => { thisbonzi.talk({text:queueText});},(i-0.2)*txtDuration(queueText)); });
-  });
+    if(!thisbonzi)return;
+    thisbonzi.talk({text:"Hey, " + data.to + "!"}, () => {
+       setTimeout(() => { thisbonzi.talk({text:"You're a fucking asshole!"}, () => {
+             setTimeout(() => { thisbonzi.animate({type:"grin"});}, 700);
+	   }); }, 700);
+    });
+});
   socket.on("bass", (data) => {
     let thisbonzi = screenbonzis({id: data.by});
 	let queue = ["Hey, " + data.to + "!","You're a fucking bass!"];
@@ -2217,6 +2530,11 @@ setInterval(unfuck,5000);
   });
   socket.on("userMoveTo",(data) => {
     handleRemoteMove(data);
+  });
+  socket.on("props",(data) => {
+    if(!Array.isArray(data))return;
+    worldProps = data.filter(p => p && typeof p.img === 'string' && Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.w) && Number.isFinite(p.h));
+    buildWorldProps();
   });
   socket.on("worldSync",(data) => {
     if(!data)return;
@@ -2559,6 +2877,55 @@ let myWorldPos = {x: camera.x, y: camera.y, moving:false, moveOriginX:camera.x, 
 let targetMode = false;
 let nextMoveAllowedAt = 0;
 let wasdKeys = {up:false,down:false,left:false,right:false};
+let worldProps = [];
+
+function propBlocksPoint(x, y){
+	return worldProps.some(p => p.impassable && Math.abs(x - p.x) < p.w/2 && Math.abs(y - p.y) < p.h/2);
+}
+
+function ensurePropLayers(){
+	if(document.getElementById('world_props_under'))return;
+	let host = document.getElementById('content') || document.body;
+	host.insertAdjacentHTML('beforeend', '<div id="world_props_under" style="position:absolute;left:0;top:0;width:0;height:0;overflow:visible;pointer-events:none;z-index:400;"></div><div id="world_props_over" style="position:absolute;left:0;top:0;width:0;height:0;overflow:visible;pointer-events:none;z-index:8500;"></div>');
+}
+
+function buildWorldProps(){
+	ensurePropLayers();
+	let under = document.getElementById('world_props_under');
+	let over = document.getElementById('world_props_over');
+	under.innerHTML = '';
+	over.innerHTML = '';
+	worldProps.forEach(p => {
+		let img = document.createElement('img');
+		img.src = p.img;
+		img.draggable = false;
+		img.style.cssText = 'position:absolute;display:none;pointer-events:none;user-select:none;width:' + p.w + 'px;height:' + p.h + 'px;';
+		p.el = img;
+		(p.overlay ? over : under).appendChild(img);
+	});
+}
+
+function renderWorldProps(cx, cy){
+	if(worldProps.length && !document.getElementById('world_props_under'))buildWorldProps();
+	let under = document.getElementById('world_props_under');
+	let over = document.getElementById('world_props_over');
+	if(!under || !over)return;
+	let shown = worldActive ? '' : 'none';
+	under.style.display = shown;
+	over.style.display = shown;
+	if(!worldActive)return;
+	worldProps.forEach(p => {
+		if(!p.el)return;
+		let sx = (p.x - camera.x) + cx - p.w/2;
+		let sy = (p.y - camera.y) + cy - p.h/2;
+		let visible = sx + p.w > 0 && sx < window.innerWidth && sy + p.h > 0 && sy < window.innerHeight;
+		p.el.style.display = visible ? '' : 'none';
+		if(visible){
+			p.el.style.left = sx + 'px';
+			p.el.style.top = sy + 'px';
+		}
+	});
+}
 
 
 function travelPosition(originX, originY, targetX, targetY, startTime, now){
@@ -2579,6 +2946,7 @@ function advanceLocalVehicle(dtSec){
 	let speed = preset.maxSpeed * 100;
 	let nx = myWorldPos.x + (dx/mag)*speed*dtSec;
 	let ny = myWorldPos.y + (dy/mag)*speed*dtSec;
+	if(propBlocksPoint(nx, ny))return;
 	myWorldPos.x = Math.max(0, Math.min(WORLD_SIZE, nx));
 	myWorldPos.y = Math.max(0, Math.min(WORLD_SIZE, ny));
 	myWorldPos.moving = false; 
@@ -2612,6 +2980,8 @@ function ensureWorldOverlay(){
 			worldX = myWorldPos.x + Math.cos(capAngle)*MAX_MOVE_DIST;
 			worldY = myWorldPos.y + Math.sin(capAngle)*MAX_MOVE_DIST;
 		}
+
+		if(propBlocksPoint(worldX, worldY))return;
 
 		nextMoveAllowedAt = now + ON_FOOT_COOLDOWN_MIN_MS + Math.random()*(ON_FOOT_COOLDOWN_MAX_MS-ON_FOOT_COOLDOWN_MIN_MS);
 		socket.emit('move_to',{x: worldX, y: worldY});
@@ -2711,6 +3081,7 @@ setInterval(() => {	let nB = document.getElementById('world_border_n');
 	ensureWorldOverlay();
 if(!worldActive){
 	document.querySelectorAll('.world_border_line').forEach(el => {el.style.display='none';});
+	renderWorldProps(cx, cy);
 	return;
 } else {
 	if(nB){nB.style.display='';nB.style.left=wx+'px'; nB.style.top=nyTop+'px'; nB.style.width=WORLD_SIZE+'px';}
@@ -2729,6 +3100,7 @@ let now = performance.now();
 	}
 	camera.x = myWorldPos.x;
 	camera.y = myWorldPos.y;
+	renderWorldProps(cx, cy);
 	
 
 	bonzislist.forEach(b => {
