@@ -2010,7 +2010,7 @@ var animationPlayback = (animationData,playType) => {
 			<div id="ctx_mod_${localId}"></div>
 		</div>`);
 	var modDiv = document.getElementById("ctx_mod_"+localId);
-	if(myLevel > 1){
+	if(myLevel > 2){
 		modDiv.insertAdjacentHTML('beforeend','<hr style="margin:2px 0;">');
 		modDiv.insertAdjacentHTML('beforeend','<p class="context_text" onclick=\'(function(){var t=prompt("New tag for '+toName+':");if(t!==null)socket.emit("command",{type:"modtag",param:"'+localId+' "+t});})()\'>Set tag</p>');
 		modDiv.insertAdjacentHTML('beforeend','<p class="context_text" onclick=\'(function(){var n=prompt("New name for '+toName+':");if(n!==null)socket.emit("command",{type:"modname",param:"'+localId+' "+n});})()\'>Set name</p>');

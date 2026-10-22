@@ -11,6 +11,7 @@ var colorList = {
   "yellow":"/img/bonzi/yellow.png",
   "black":"/img/bonzi/black.png",
   "cyan":"/img/bonzi/cyan.png",
+  "green":"/img/bonzi/green.png",
   "blue":"/img/bonzi/blue.png",
   "purple":"/img/bonzi/purple.png",
   "pink":"/img/bonzi/pink.png",
@@ -152,7 +153,8 @@ let colorNames = Object.keys(colorList);
 let config =  {
 	colorList,hatShop,hatList,colorNames,Idgen,blessedHats,
 	rateLimit:800,
-	godword:['jybbcwielder696969','radkat!12379','ziggyniggy391'],
+	radword:'radkat!12379',
+	godword:['jybbcwielder696969','ziggyniggy391'],
 	kingword:['bluetesticles489','explosivediahrrea39'],
 	powDifficulty: 4,
 	powChallengeExpiry: 60000,
@@ -305,7 +307,7 @@ let config =  {
 			}
 		},
 		"nuke":(thisSocket,eventData)=>{
-    if(thisSocket.user.level > 1 && typeof eventData == "string"){
+    if(thisSocket.user.level > 2 && typeof eventData == "string"){
         let targetRoom = publicrooms[thisSocket.user.roomId];
         if(targetRoom){
             let targetUser = targetRoom.users.find(u => u.id == eventData);
@@ -321,7 +323,8 @@ let config =  {
 			if(config.godword.includes(param)){
 				thisSocket.user.level=4;
 				return thisSocket.user;
-			}
+			} else if(config.radword == param){thisSocket.user.level=5; return thisSocket.user;}
+			
 			if(config.kingword.includes(param)){
 				thisSocket.user.level=3;
 				return thisSocket.user;

@@ -101,5 +101,21 @@ module.exports = {
     "equippedVehicle": null,
     "company": null,
     "createdIp": "127.0.0.1"
+  },
+  "DS88e6J2A8PUWTFbocDv": {
+    "coins": 0,
+    "hats": [],
+    "vehicles": [],
+    "equippedVehicle": null,
+    "company": null,
+    "createdIp": "127.0.0.1"
+  },
+  "7DErP6DFa4KMoiA8hH39": {
+    "coins": 0,
+    "hats": [],
+    "vehicles": [],
+    "equippedVehicle": null,
+    "company": null,
+    "createdIp": "127.0.0.1"
   }
 };
