@@ -2185,6 +2185,7 @@ function login(newRoom){
 	profileList[0].uses = (typeof profileList[0].uses === 'number' ? profileList[0].uses : 0) + 1;
 	if(profileList[0].uses < 2){
 		new Dialog({title:'Welcome!',width:400,height:300,html:`
+		    <span>Shift + click to move, you can opt out of this in settings. UI has been redesigned too</span>
 			<img src="" id="newuser_slide">
 		`});
 	}
