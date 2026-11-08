@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const http = require('http');
+const http = require('https');
 
 // JSON data containing hat lists
 const hatData = {
@@ -30,7 +30,7 @@ const hatData = {
   ]
 };
 
-const BASE_URL = 'http://172.82.74.226/img/bonzi/';
+const BASE_URL = 'https://bonziworld.kr/img/bonzi/';
 const OUTPUT_DIR = path.join(__dirname, 'hats');
 
 // Ensure destination directory exists

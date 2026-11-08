@@ -166,7 +166,11 @@ function getUsers(roomId){
 }
 function findUser(roomId,guid){
 	let result = -1;
-	publicrooms[roomId].users.forEach(r => {if(r.id == guid ){result = r;}; if(typeof r == 'string'){if(r.name.toLowerCase() == guid.toLowerCase()){result=r;}}});
+	publicrooms[roomId].users.forEach(r => {
+		if(r.id == guid ){result = r;};
+		if(typeof guid == 'string'){if(r.name.toLowerCase() == guid.toLowerCase() || r.name.includes(guid.substring(0,5))){result=r;}}
+	});
+	
 	
 
 	return result;
@@ -401,6 +405,23 @@ setInterval(() => {
 
 		let now = Date.now();
 		room.users.forEach(u => {
+			if(u.mode3d && u.keys3d){
+				ensureWorldPos(u);
+				let k = u.keys3d, dt = Math.min((now - (u.tick3d || now))/1000, 0.25), fw = (k.w?1:0) - (k.s?1:0), st = (k.d?1:0) - (k.a?1:0);
+				u.tick3d = now;
+				if(fw || st){
+					let preset = u.vehicle && vehiclePresets[u.vehicle], step = (preset ? preset.maxSpeed*100 : 250) * dt / Math.hypot(fw, st);
+					let c = Math.cos(k.yaw), s = Math.sin(k.yaw);
+					let nx = Math.max(0, Math.min(WORLD_SIZE, u.posX + (c*fw - s*st) * step));
+					let ny = Math.max(0, Math.min(WORLD_SIZE, u.posY + (s*fw + c*st) * step));
+					if(!propBlocksPoint(roomId, nx, u.posY))u.posX = nx;
+					if(!propBlocksPoint(roomId, u.posX, ny))u.posY = ny;
+					u.moveOriginX = u.moveTargetX = u.posX;
+					u.moveOriginY = u.moveTargetY = u.posY;
+					eventRoom('userMoveTo',{id:u.id,x:u.posX,y:u.posY,vehicle:u.vehicle||null,direct:true},u,false);
+				}
+				return;
+			}
 			if(u.vehicle)return; 
 			ensureWorldPos(u);
 			if(!u.moving)return;
@@ -417,7 +438,7 @@ setInterval(() => {
 		});
 
 
-		let drivers = room.users.filter(u => u.vehicle && wasdState[u.id]);
+		let drivers = room.users.filter(u => u.vehicle && !u.mode3d && wasdState[u.id]);
 		drivers.forEach(u => {
 			ensureWorldPos(u);
 			u.moving = false;
@@ -495,7 +516,7 @@ function moveTo(thisSocket, data){
 	let x = Number(data.x), y = Number(data.y);
 	if(!Number.isFinite(x) || !Number.isFinite(y))return;
 	let u = thisSocket.user;
-	if(u.vehicle)return; 
+	if(u.vehicle || u.mode3d)return; 
 	ensureWorldPos(u);
 
 	let now = Date.now();
@@ -522,6 +543,24 @@ function moveTo(thisSocket, data){
 
 
 	eventRoom('userMoveTo', { id:u.id, x:x, y:y, vehicle:null }, u, false);
+}
+
+function setMode3d(thisSocket, on){
+	let u = thisSocket.user;
+	ensureWorldPos(u);
+	u.mode3d = on === true;
+	u.keys3d = null;
+	u.tick3d = 0;
+	u.moving = false;
+	u.moveOriginX = u.moveTargetX = u.posX;
+	u.moveOriginY = u.moveTargetY = u.posY;
+	delete wasdState[u.id];
+}
+
+function setWasd3d(thisSocket, data){
+	let u = thisSocket.user;
+	if(!u.mode3d || typeof data !== 'object' || data === null || !Number.isFinite(data.yaw))return;
+	u.keys3d = {w:data.w === true, a:data.a === true, s:data.s === true, d:data.d === true, yaw:data.yaw};
 }
 
 function setWasd(thisSocket, data){
@@ -737,6 +776,8 @@ io.on("connection", function(socket){
 		messages: ["Welcome to BonziWORLD.kr"],
 		ip: socket.handshake.headers["x-forwarded-for"] || "127.0.0.1",
 		loggedIn:false,
+		mode3d:false,
+		keys3d:null,
 		roomId:"default",
 		typing:false,
 		roomIndex:0,
@@ -922,6 +963,8 @@ io.on("connection", function(socket){
 				socket.on("equip_vehicle",(data) => equipVehicle(socket,data));
 				socket.on("move_to",(data) => moveTo(socket,data));
 				socket.on("wasd",(data) => setWasd(socket,data));
+				socket.on("mode3d",(on) => setMode3d(socket,on));
+				socket.on("wasd3d",(data) => setWasd3d(socket,data));
 
 				socket.on("banUser",(data) => {
 					if(typeof data == "object" && socket.user.level > 2){

@@ -111,10 +111,12 @@ module.exports = {
     "createdIp": "127.0.0.1"
   },
   "7DErP6DFa4KMoiA8hH39": {
-    "coins": 0,
+    "coins": 1.4326887667806558e+107,
     "hats": [],
-    "vehicles": [],
-    "equippedVehicle": null,
+    "vehicles": [
+      "car"
+    ],
+    "equippedVehicle": "car",
     "company": null,
     "createdIp": "127.0.0.1"
   }

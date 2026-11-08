@@ -69,6 +69,8 @@ function swapTheme(url){
 profileList = profileList == null ? [ {name:'Anonymous',color:'purple',hats:[],godmodePass:null,bonzicoinPass:null,uses:0,themeType:'XP'} ] : profileList;
 if(typeof profileList[0].bonzicoinPass == 'undefined')profileList[0].bonzicoinPass=null;
 if(typeof profileList[0].optOutMovement == 'undefined')profileList[0].optOutMovement=false;
+if(typeof profileList[0].mode3d == 'undefined')profileList[0].mode3d=false;
+if(typeof profileList[0].modeVR == 'undefined')profileList[0].modeVR=false;
 let disconnectHandle = () => {};
 let notifyUserEvent_BONZICOIN = true;
 let notifyUserEvent_ERROR = true;
@@ -542,6 +544,14 @@ let applets = {
 								<input type="checkbox" id="pref_bonzitv_bg">
 							<label for="pref_bonzitv_bg">View BonziTV/Byoutube in background</label>
 							</div>
+							<div style="display:flex;gap:6px;margin-top:8px;">
+								<input type="checkbox" id="pref_3d">
+								<label for="pref_3d">3D first-person view</label>
+							</div>
+							<div id="pref_vr_row" style="display:none;gap:6px;margin-top:8px;">
+								<input type="checkbox" id="pref_vr">
+								<label for="pref_vr">VR mode (phone headset, gyro + optional gamepad)</label>
+							</div>
 						</div>
                         <div id="view_css" style="display: none; width: 100%; height: 100%;">
                             Custom CSS Editor:<br>
@@ -645,6 +655,27 @@ btnMyBonzi.addEventListener("click", (e) => {
 					if(ov)ov.style.display='none';
 					scatterOutOfBoundsBonzis();
 				}
+			});
+			var pref3d = document.getElementById("pref_3d");
+			pref3d.checked = profileList[0].mode3d === true;
+			var prefVR = document.getElementById("pref_vr");
+			var prefVRRow = document.getElementById("pref_vr_row");
+			prefVRRow.style.display = pref3d.checked ? "flex" : "none";
+			prefVR.checked = profileList[0].modeVR === true && pref3d.checked;
+			pref3d.addEventListener("change", () => {
+				profileList[0].mode3d = pref3d.checked;
+				if(!pref3d.checked){
+					profileList[0].modeVR = false;
+					prefVR.checked = false;
+				}
+				prefVRRow.style.display = pref3d.checked ? "flex" : "none";
+				saveArray('profiles', profileList);
+				set3D(pref3d.checked && worldActive);
+			});
+			prefVR.addEventListener("change", () => {
+				profileList[0].modeVR = prefVR.checked;
+				saveArray('profiles', profileList);
+				if(prefVR.checked)requestVRSensors(true);
 			});
              var appliedStyle = document.getElementById("bonzi-custom-css");
             if (appliedStyle) cssTextarea.value = appliedStyle.textContent;
@@ -921,7 +952,7 @@ $(window).load(function(){
 		  oobeplaybg.style.display='none';
 		  page_login.style.backgroundImage = ' url(), url("../img/logon/top.png"), url("../img/logon/bottom.png"), url("../img/logon/topleft.png"), url()';
 		  setTimeout(() => {qmark_speak.style.display="block";
-				setTimeout(() => {qmark_dialogue.innerText="I'm gonna go die now."; qmark.src='./img/desktop/icons/helpnigga.gif'+ "?t=" + new Date().getTime();
+				setTimeout(() => {qmark_dialogue.innerText="I'm gonna go die now."; qmark.src='./img/desktop/icons/helpd.gif'+ "?t=" + new Date().getTime();
 					setTimeout(() => {qmark_speak.style.display='none';},5000);
 					setTimeout(() => {qmark_speak.style.display='none';qmark.style.display='none';},12000);
 				},6000);
@@ -1982,13 +2013,13 @@ var animationPlayback = (animationData,playType) => {
       "user-select": "auto"
     });
   }
+  // FIX: context menu no longer disappears.
+  //  - only one menu at a time (old ones removed up front)
+  //  - single outside-click closer instead of stacked jQuery handlers + body.onmouseup
+  //  - second item's id fixed (was a duplicate "_asshole")
   document.getElementById(localId).oncontextmenu = () => {
-    var parsetop1 = parseInt(document.getElementById(localId).style.top);
-    var hidectx = () => {$("#context_" + localId).hide();$("#context_" + localId).remove();}
-    var parsetop = parsetop1 + 50;
-    $(".bonzi_canvas").on("mousedown", hidectx);
-    $(".icon").click(hidectx);
-    $("#chat_message").click(hidectx);
+    $(".context_menu").remove();
+    var parsetop = parseInt(document.getElementById(localId).style.top) + 50;
 	var foundBonzi = screenbonzis({id:localId});
 	var rawName = (foundBonzi && foundBonzi.name) ? foundBonzi.name : "";
 	var toName = rawName;
@@ -2005,7 +2036,7 @@ var animationPlayback = (animationData,playType) => {
 	$("#content").append(`
 		<div class='context_menu' id='context_${localId}' style='top:${parsetop}px; left: ${document.getElementById(localId).style.left}'>
 			<p class="context_text" id="${localId}_asshole" onclick='socket.emit("command",{type:"asshole",param:"${toName}"});'>Call an asshole</p>
-			<p class="context_text" id="${localId}_asshole" onclick='socket.emit("command",{type:"bass",param:"${toName}"});'>Call a bass</p>
+			<p class="context_text" id="${localId}_bass" onclick='socket.emit("command",{type:"bass",param:"${toName}"});'>Call a bass</p>
 			<p class="context_text" id="${localId}_mute" onclick='(function(){var b=screenbonzis({id:"${localId}"});if(b){b.mute=!b.mute;document.getElementById("${localId}_mute").innerText=b.mute?"Unmute":"Mute";}})();'>${muteLabel}</p>
 			<div id="ctx_mod_${localId}"></div>
 		</div>`);
@@ -2018,9 +2049,14 @@ var animationPlayback = (animationData,playType) => {
 		modDiv.insertAdjacentHTML('beforeend','<p class="context_text" style="color:orange;" onclick=\'openBanDialog("'+localId+'")\'>Ban</p>');
 		modDiv.insertAdjacentHTML('beforeend','<p class="context_text" style="color:green;" onclick=\'if(confirm("Bless '+toName+'?"))socket.emit("command",{type:"bless",param:"'+localId+'"})\'>Bless</p>');
 	}
-		 document.body.onmouseup = (e) => {
-			if(e.target.id !== 'context_'+localId && document.getElementById('context_'+localId) != null)document.getElementById('context_'+localId).style.display='none';
-		};
+
+	var closeMenu = (e) => {
+		if(e.target.closest && e.target.closest('.context_menu'))return;
+		$("#context_" + localId).remove();
+		document.removeEventListener('mousedown', closeMenu, true);
+	};
+	// defer so the mousedown that opened the menu doesn't immediately close it
+	setTimeout(() => document.addEventListener('mousedown', closeMenu, true), 0);
     return false;
   }
 }
@@ -2100,16 +2136,17 @@ function resetUsers(userlist) {
     updateUsers();
 }
 let disconnectErr = true;
+// FIX: skip anything inside a context menu so unfuck() stops deleting menu items
 function unfuck(){
 	let destruction = [];
-	for(let i=0;i<document.querySelectorAll('*').length;i++){
-		let c = document.querySelectorAll('*')[i];
+	document.querySelectorAll('*').forEach(c => {
+		if(!c.id || c.closest('.context_menu'))return;
 		bonzislist.forEach(b => {
 			if(c.id.includes(b.id) || c.id == b.id){
 				if(c.style.left.length < 1 && !c.id.includes('tag'))destruction.push(c);
 			}
 		});
-	}
+	});
 	destruction.forEach(fuckedElement => {fuckedElement.remove();});
 }
 
@@ -2384,6 +2421,8 @@ background: radial-gradient(circle, rgba(211, 181, 247, 1) 0%, rgba(174, 113, 25
 
   socket.on("room", (data) => {
     if(typeof data.selfId === 'string')myId = data.selfId;
+    view3d.live = true;
+    if(view3d.on)socket.emit('mode3d', true);
     $("#page_login").hide();
     $("#room_public").hide();
     $("#room_private").hide();
@@ -2409,7 +2448,10 @@ background: radial-gradient(circle, rgba(211, 181, 247, 1) 0%, rgba(174, 113, 25
 	});
     }
 setTimeout(unfuck,3000);
-setInterval(unfuck,5000);
+// FIX: only ever create one unfuck interval (this handler re-runs on every reconnect)
+if(!window._unfuckInterval){
+	window._unfuckInterval = setInterval(unfuck,5000);
+}
   });
   socket.on("userlist", (data) => {
 	document.getElementById('users_online').innerText = data.list.length;
@@ -2540,7 +2582,8 @@ socket.on("asshole", (data) => {
   socket.on("worldSync",(data) => {
     if(!data)return;
 	//put skiddies back in line
-    if(data.self && !myWorldPos.moving && !myVehicle){
+    if(data.self && view3d.on)view3d.srv = data.self;
+    else if(data.self && !myWorldPos.moving && !myVehicle){
       myWorldPos.x = data.self.x;
       myWorldPos.y = data.self.y;
     }
@@ -2898,8 +2941,11 @@ function buildWorldProps(){
 	over.innerHTML = '';
 	worldProps.forEach(p => {
 		let img = document.createElement('img');
-		img.src = p.img;
+		
+		let bushTime = p.img.includes('desktop/bush.png') && Math.random() > 0.75;
+		img.src = bushTime ? './desktop/tree.png' : p.img; //bush counts as random nature prop on client to save server prop space
 		img.draggable = false;
+		let scaling = {w:p.w,h:p.h}
 		img.style.cssText = 'position:absolute;display:none;pointer-events:none;user-select:none;width:' + p.w + 'px;height:' + p.h + 'px;';
 		p.el = img;
 		(p.overlay ? over : under).appendChild(img);
@@ -3005,7 +3051,7 @@ function ensureWorldOverlay(){
 
 document.addEventListener('keydown', (e) => {
 	if(e.key === 'Shift' && !e.repeat){
-		if(myVehicle || !worldActive)return; 
+		if(myVehicle || !worldActive || view3d.on)return; 
 		ensureWorldOverlay();
 		targetMode = !targetMode;
 		if(targetMode){
@@ -3020,7 +3066,7 @@ document.addEventListener('keydown', (e) => {
 		document.getElementById('target_cursor').style.display = targetMode ? 'block' : 'none';
 		document.getElementById('world_click_overlay').style.display = targetMode ? 'block' : 'none';
 	}
-	if(myVehicle && worldActive){
+	if(myVehicle && worldActive && !view3d.on){
 		let key = e.key.toLowerCase();
 		let changed = false;
 		if(key==='w'&&!wasdKeys.up){wasdKeys.up=true;changed=true;}
@@ -3050,7 +3096,7 @@ function handleRemoteMove(data){
 	let b = screenbonzis({id:data.id});
 	if(!b)return;
 
-	if(data.vehicle){
+	if(data.vehicle || data.direct){
 
 		b.vehicle = data.vehicle;
 		b.worldX = data.x; b.worldY = data.y;
@@ -3071,8 +3117,310 @@ function handleRemoteMove(data){
 	b.animate({type:'surf_right'});
 }
 
+let view3d = {on:false, canvas:null, style:null, timer:null, keys:{}, yaw:-Math.PI/2, fov:70, eye:100, scale:0.75, last:0, sync:0, sig:'0000', srv:null, live:false, vr:false, vrStyle:null, ghost:null, ghostBody:null, ghostCanvas:null, gyro:false, head:0, pitch:0, base:null, btn:0, gs:0, sep:14, ipd:6};
+
+function set3D(on){
+	clearTimeout(view3d.timer);
+	view3d.on = on;
+	view3d.keys = {};
+	view3d.srv = null;
+	view3d.sig = '0000';
+	if(view3d.live)socket.emit('mode3d', on);
+	if(view3d.canvas)view3d.canvas.remove();
+	if(view3d.style)view3d.style.remove();
+	view3d.canvas = view3d.style = null;
+	if(!on)return;
+	targetMode = false;
+	myWorldPos.moving = false;
+	['target_cursor','world_click_overlay'].forEach(id => {let el = document.getElementById(id); if(el)el.style.display = 'none';});
+	view3d.style = document.createElement('style');
+	view3d.style.textContent = '#content .bonzi_name,#content .bonzi_canvas,#content .bonzi_hat_layer,#content .bonzi_vehicle_layer,#content .coins_wrapper,#content .bubble_chat,#content .bubble_point,#world_props_under,#world_props_over,.world_border_line{display:none !important;}';
+	document.head.appendChild(view3d.style);
+	view3d.canvas = document.createElement('canvas');
+	view3d.canvas.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:400;';
+	(document.getElementById('content') || document.body).appendChild(view3d.canvas);
+	view3d.last = performance.now();
+	render3D();
+}
+
+document.addEventListener('keydown', (e) => {
+	if(!view3d.on || document.activeElement?.matches('input,textarea,select,[contenteditable]'))return;
+	let key = e.key.length > 1 ? e.key : e.key.toLowerCase();
+	view3d.keys[key] = true;
+	if(key.startsWith('Arrow'))e.preventDefault();
+});
+window.addEventListener('blur', () => {view3d.keys = {};});
+document.addEventListener('contextmenu', (e) => {
+	if(!view3d.on || e.target.closest('input,textarea,select,.context_menu'))return;
+	let near = bonzislist.filter(b => b.id !== myId && typeof b.worldX === 'number' && document.getElementById(b.id)).sort((b1, b2) => Math.hypot(b1.worldX - myWorldPos.x, b1.worldY - myWorldPos.y) - Math.hypot(b2.worldX - myWorldPos.x, b2.worldY - myWorldPos.y))[0];
+	if(!near)return;
+	e.preventDefault();
+	document.getElementById(near.id).oncontextmenu();
+	$('#context_' + near.id).css({left: (view3d.vr ? (e.clientX - view3d.ipd) * 2 : e.clientX) + 'px', top: e.clientY + 'px'});
+});
+document.addEventListener('keyup', (e) => {
+	delete view3d.keys[e.key.length > 1 ? e.key : e.key.toLowerCase()];
+});
+
+function requestVRSensors(full){
+	if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function')DeviceOrientationEvent.requestPermission().catch(() => {});
+	if(full && document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().then(() => screen.orientation && screen.orientation.lock ? screen.orientation.lock('landscape') : null).catch(() => {});
+}
+
+document.addEventListener('pointerdown', () => {
+	if(view3d.vr && !view3d.gyro)requestVRSensors(false);
+}, {passive:true});
+
+function onVROrientation(e){
+	if(e.alpha === null || e.beta === null || e.gamma === null)return;
+	let a = e.alpha * Math.PI / 180, b = e.beta * Math.PI / 180, g = e.gamma * Math.PI / 180;
+	let fx = -(Math.sin(g) * Math.cos(a) + Math.cos(g) * Math.sin(b) * Math.sin(a));
+	let fy = -(Math.sin(g) * Math.sin(a) - Math.cos(g) * Math.sin(b) * Math.cos(a));
+	let fz = -(Math.cos(g) * Math.cos(b));
+	view3d.head = -Math.atan2(fy, fx);
+	view3d.pitch = Math.max(-1.2, Math.min(1.2, Math.asin(Math.max(-1, Math.min(1, fz)))));
+	view3d.gyro = true;
+}
+
+function setVR(on){
+	view3d.vr = on;
+	view3d.pitch = 0;
+	view3d.base = null;
+	view3d.btn = 0;
+	view3d.gyro = false;
+	window.removeEventListener('deviceorientation', onVROrientation);
+	if(view3d.ghost)view3d.ghost.remove();
+	if(view3d.vrStyle)view3d.vrStyle.remove();
+	view3d.ghost = view3d.ghostBody = view3d.ghostCanvas = view3d.vrStyle = null;
+	document.body.classList.remove('vr_mode', 'vr_pad');
+	if(!on){
+		if(document.fullscreenElement && document.exitFullscreen)document.exitFullscreen().catch(() => {});
+		return;
+	}
+	view3d.vrStyle = document.createElement('style');
+	view3d.vrStyle.textContent = 'body.vr_mode{overflow:hidden !important;background:#000 !important;}'
+		+ 'body.vr_mode #content{position:fixed !important;left:0 !important;top:0 !important;width:100vw !important;height:100vh !important;margin:0 !important;transform:translateX(' + view3d.ipd + 'px) scale(0.5,1);transform-origin:0 0;clip-path:inset(0 ' + (view3d.ipd * 2) + 'px 0 0);}'
+		+ 'body.vr_mode.vr_pad #content{pointer-events:none !important;}'
+		+ 'body.vr_mode::after{content:"";position:fixed;left:50%;top:0;width:2px;height:100%;margin-left:-1px;background:#000;z-index:1000000;pointer-events:none;}'
+		+ '#vr_ghost{position:fixed;left:50vw;top:0;width:100vw;height:100vh;transform:translateX(-' + view3d.ipd + 'px) scale(0.5,1);transform-origin:0 0;clip-path:inset(0 0 0 ' + (view3d.ipd * 2) + 'px);pointer-events:none !important;user-select:none;-webkit-user-select:none;z-index:999999;overflow:hidden;}'
+		+ '#vr_ghost *{pointer-events:none !important;}'
+		+ '#vr_ghost #content{transform:none !important;clip-path:none !important;}';
+	document.head.appendChild(view3d.vrStyle);
+	view3d.ghost = document.createElement('div');
+	view3d.ghost.id = 'vr_ghost';
+	view3d.ghost.setAttribute('aria-hidden', 'true');
+	view3d.ghost.inert = true;
+	view3d.ghostBody = document.createElement('div');
+	view3d.ghostBody.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;';
+	view3d.ghostCanvas = document.createElement('canvas');
+	view3d.ghostCanvas.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;z-index:400;';
+	view3d.ghost.append(view3d.ghostBody, view3d.ghostCanvas);
+	document.body.appendChild(view3d.ghost);
+	document.body.classList.add('vr_mode');
+	window.addEventListener('deviceorientation', onVROrientation);
+	view3d.gs = 0;
+}
+
+function syncVRGhost(){
+	let src = document.getElementById('content');
+	if(!view3d.vr || !src || !view3d.ghostBody)return;
+	let copy = src.cloneNode(true);
+	let from = src.querySelectorAll('canvas'), to = copy.querySelectorAll('canvas');
+	from.forEach((cv, i) => {
+		if(cv === view3d.canvas){to[i].remove(); return;}
+		try{to[i].getContext('2d').drawImage(cv, 0, 0);}catch(e){}
+	});
+	let fields = src.querySelectorAll('input,textarea'), copies = copy.querySelectorAll('input,textarea');
+	fields.forEach((el, i) => {
+		if(el.type === 'checkbox' || el.type === 'radio')copies[i].toggleAttribute('checked', el.checked);
+		else if(el.tagName === 'TEXTAREA')copies[i].textContent = el.value;
+		else copies[i].setAttribute('value', el.value);
+	});
+	copy.querySelectorAll('iframe,video,audio,script,embed,object').forEach(el => el.remove());
+	view3d.ghostBody.replaceChildren(copy);
+}
+
+function render3D(){
+	if(!view3d.on)return;
+	view3d.timer = setTimeout(render3D, 16);
+	let cv = view3d.canvas;
+	let w = window.innerWidth, h = window.innerHeight;
+	if(cv.width !== w || cv.height !== h){cv.width = w; cv.height = h;}
+	let now = performance.now(), dt = Math.min((now - view3d.last)/1000, 0.1);
+	view3d.last = now;
+	if(document.activeElement?.matches('input,textarea,select,[contenteditable]'))view3d.keys = {};
+	let k = Object.assign({}, view3d.keys);
+	let turn = ((k.ArrowRight ? 1 : 0) - (k.ArrowLeft ? 1 : 0)) * 2;
+	if(view3d.vr){
+		let pad = Array.from(navigator.getGamepads ? navigator.getGamepads() : []).find(p => p && p.connected) || null;
+		document.body.classList.toggle('vr_pad', !!pad);
+		if(pad){
+			let ax = i => Math.abs(pad.axes[i] || 0) > 0.2 ? pad.axes[i] : 0;
+			if(ax(1) < 0)k.w = true;
+			if(ax(1) > 0)k.s = true;
+			if(ax(0) < 0)k.a = true;
+			if(ax(0) > 0)k.d = true;
+			turn += ax(2) * 2.5;
+			if(!view3d.gyro)view3d.pitch = Math.max(-1.2, Math.min(1.2, view3d.pitch - ax(3) * dt * 1.5));
+			let bits = (pad.buttons[8] && pad.buttons[8].pressed ? 1 : 0) | (pad.buttons[9] && pad.buttons[9].pressed ? 2 : 0);
+			if(bits & 2 & ~view3d.btn)view3d.base = null;
+			if(bits & 1 & ~view3d.btn){
+				profileList[0].modeVR = false;
+				saveArray('profiles', profileList);
+				let pv = document.getElementById('pref_vr');
+				if(pv)pv.checked = false;
+				setVR(false);
+			}
+			view3d.btn = bits;
+		}
+	}
+	if(view3d.vr && view3d.gyro){
+		if(view3d.base === null)view3d.base = view3d.yaw - view3d.head;
+		view3d.base += turn * dt;
+		view3d.yaw = view3d.base + view3d.head;
+	}else view3d.yaw += turn * dt;
+	let c = Math.cos(view3d.yaw), s = Math.sin(view3d.yaw);
+	let fw = (k.w ? 1 : 0) - (k.s ? 1 : 0), st = (k.d ? 1 : 0) - (k.a ? 1 : 0);
+	if(fw || st){
+		let preset = myVehicle && vehicleClientPresets[myVehicle];
+		let step = (preset ? preset.maxSpeed * 100 : 250) * dt / Math.hypot(fw, st);
+		let nx = Math.max(0, Math.min(WORLD_SIZE, myWorldPos.x + (c*fw - s*st) * step));
+		let ny = Math.max(0, Math.min(WORLD_SIZE, myWorldPos.y + (s*fw + c*st) * step));
+		if(!propBlocksPoint(nx, myWorldPos.y))myWorldPos.x = nx;
+		if(!propBlocksPoint(myWorldPos.x, ny))myWorldPos.y = ny;
+		myWorldPos.moving = false;
+	}
+	if(view3d.srv){
+		let ex = view3d.srv.x - myWorldPos.x, ey = view3d.srv.y - myWorldPos.y, d = Math.hypot(ex, ey), snap = d > 300 ? 1 : 0.3;
+		if(d > 300 || (!fw && !st && d > 1)){myWorldPos.x += ex * snap; myWorldPos.y += ey * snap;}
+		view3d.srv = null;
+	}
+	let sig = [k.w, k.a, k.s, k.d].map(v => v ? 1 : 0).join('') + (fw || st ? Math.round(view3d.yaw * 100) : '');
+	if(sig !== view3d.sig && now - view3d.sync > 100){
+		view3d.sig = sig;
+		view3d.sync = now;
+		socket.emit('wasd3d', {w:!!k.w, a:!!k.a, s:!!k.s, d:!!k.d, yaw:view3d.yaw});
+	}
+
+
+	drawEye(cv, view3d.vr ? -view3d.sep : 0, dt);
+	if(view3d.vr && view3d.ghostCanvas){
+		let gc = view3d.ghostCanvas;
+		if(gc.width !== w || gc.height !== h){gc.width = w; gc.height = h;}
+		drawEye(gc, view3d.sep, 0);
+		if(now - view3d.gs > 150){view3d.gs = now; syncVRGhost();}
+	}
+}
+
+function drawEye(cv, off, dt){
+	let g = cv.getContext('2d');
+	let w = cv.width, h = cv.height;
+	let c = Math.cos(view3d.yaw), s = Math.sin(view3d.yaw);
+	let px = myWorldPos.x - s * off, py = myWorldPos.y + c * off;
+	let f = h / (2 * Math.tan(view3d.fov * Math.PI / 360));
+	let hy = h / 2 + f * Math.tan(view3d.pitch);
+	g.setTransform(1, 0, 0, 1, 0, 0);
+	g.clearRect(0, 0, w, h);
+
+	g.strokeStyle = 'rgba(128,128,128,0.5)';
+	g.lineWidth = 1;
+	g.beginPath();
+	for(let axis = 0; axis < 2; axis++){
+		let a = axis ? py : px, b = axis ? px : py;
+		for(let line = Math.floor((a - 3000)/500)*500; line <= a + 3000; line += 500){
+			if(line < 0 || line > WORLD_SIZE)continue;
+			let pen = false;
+			for(let t = Math.max(0, Math.floor((b - 3000)/250)*250); t <= Math.min(WORLD_SIZE, b + 3000); t += 250){
+				let dx = (axis ? t : line) - px, dy = (axis ? line : t) - py;
+				let z = dx*c + dy*s;
+				if(z < 20){pen = false; continue;}
+				let sx = w/2 + (-dx*s + dy*c) / z * f, sy = hy + view3d.eye / z * f;
+				if(pen)g.lineTo(sx, sy); else g.moveTo(sx, sy);
+				pen = true;
+			}
+		}
+	}
+	g.stroke();
+
+	let layers = ['', 'hat1_', 'hat2_', 'hat3_', 'hat4_', 'hat5_', 'vehicle_'];
+	let list = [];
+	bonzislist.forEach(b => {
+		if(b.id === myId || typeof b.worldX !== 'number')return;
+		if(typeof b.rx !== 'number' || Math.hypot(b.worldX - b.rx, b.worldY - b.ry) > 800){b.rx = b.worldX; b.ry = b.worldY;}
+		let ease = 1 - Math.exp(-dt * 15);
+		b.rx += (b.worldX - b.rx) * ease;
+		b.ry += (b.worldY - b.ry) * ease;
+		list.push({x:b.rx, y:b.ry, w:200, h:160, b:b});
+	});
+	worldProps.forEach(p => list.push({x:p.x, y:p.y, w:p.w, h:p.h, p:p}));
+	list.forEach(o => {o.z = (o.x - px)*c + (o.y - py)*s;});
+	list.sort((o1, o2) => o2.z - o1.z);
+
+	for(let o of list){
+		if(o.z < 20 || o.z > 6000)continue;
+		let sc = f / o.z;
+		let sx = w/2 + (-(o.x - px)*s + (o.y - py)*c) * sc;
+		if(sx + o.w*sc/2 < 0 || sx - o.w*sc/2 > w)continue;
+		g.setTransform(sc, 0, 0, sc, sx, hy + view3d.eye * sc);
+		if(o.p){
+			if(o.p.el && o.p.el.complete && o.p.el.naturalWidth)g.drawImage(o.p.el, -o.w/2, -o.h, o.w, o.h);
+			continue;
+		}
+		layers.forEach(pre => {
+			let el = document.getElementById(pre + o.b.id);
+			if(el)g.drawImage(el, -100, -160, 200, 160);
+		});
+		let nameEl = document.getElementById('name_' + o.b.id);
+		g.textAlign = 'center';
+		g.font = '16px Tahoma';
+		g.lineJoin = 'round';
+		g.lineWidth = 3;
+		g.strokeStyle = 'black';
+		g.fillStyle = 'white';
+		if(nameEl){
+			let label = nameEl.textContent.replace(/\s+/g, ' ').trim();
+			g.strokeText(label, 0, -168);
+			g.fillText(label, 0, -168);
+		}
+		let chatEl = document.getElementById('chat_' + o.b.id);
+		if(chatEl && chatEl.style.display === 'block'){
+			let lines = [''];
+			g.font = '14px Tahoma';
+			chatEl.textContent.slice(0, 200).split(' ').forEach(word => {
+				let cur = lines[lines.length - 1];
+				if(cur && g.measureText(cur + ' ' + word).width > 180)lines.push(word); else lines[lines.length - 1] = cur ? cur + ' ' + word : word;
+			});
+			let bh = lines.length * 18 + 12;
+			g.lineWidth = 2;
+			g.strokeStyle = 'black';
+			g.fillStyle = 'white';
+			g.beginPath();
+			g.roundRect(-100, -196 - bh, 200, bh, 8);
+			g.fill();
+			g.stroke();
+			g.beginPath();
+			g.moveTo(-8, -196);
+			g.lineTo(0, -186);
+			g.lineTo(8, -196);
+			g.fill();
+			g.stroke();
+			g.fillStyle = 'black';
+			lines.forEach((text, i) => g.fillText(text, 0, -196 - bh + 18 + i*18));
+		}
+	}
+
+	g.setTransform(1, 0, 0, 1, 0, 0);
+	let ow = 200 * view3d.scale, oh = 160 * view3d.scale;
+	layers.forEach(pre => {
+		let el = document.getElementById(pre + myId);
+		if(el)g.drawImage(el, (w - ow)/2, 0, ow, oh);
+	});
+}
+
 const WORLD_RENDER_TICK_MS = 33;
-setInterval(() => {	let nB = document.getElementById('world_border_n');
+setInterval(() => {	if(view3d.on !== (profileList[0].mode3d === true && worldActive))set3D(!view3d.on);
+	if(view3d.vr !== (profileList[0].modeVR === true && view3d.on))setVR(!view3d.vr);
+	let nB = document.getElementById('world_border_n');
 	let sB = document.getElementById('world_border_s');
 	let eB = document.getElementById('world_border_e');
 	let wB = document.getElementById('world_border_w'); let cx = window.innerWidth/2, cy = window.innerHeight/2; let nx = (0 - camera.x) + cx, sy = (WORLD_SIZE - camera.y) + cy;
