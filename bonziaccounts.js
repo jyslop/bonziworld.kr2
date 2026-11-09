@@ -1,6 +1,6 @@
 
 module.exports = {
-  "orangutannigger015": {
+  "orangutanzzsnicer015": {
     "coins": 0,
     "hats": [],
     "vehicles": [],
@@ -22,7 +22,7 @@ module.exports = {
     "company": "SEAME",
     "createdIp": "127.0.0.1"
   },
-  "fatnigger9000": {
+  "nuttybuddy9000": {
     "coins": 15639.06,
     "hats": [],
     "vehicles": [],
@@ -30,7 +30,7 @@ module.exports = {
     "company": null,
     "createdIp": "127.0.0.1"
   },
-  "niggafart99": {
+  "nutella99": {
     "coins": 0,
     "hats": [],
     "vehicles": [],
