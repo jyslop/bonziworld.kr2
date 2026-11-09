@@ -524,7 +524,7 @@ let applets = {
                             <div id="row_color1" style="display:flex; flex-direction:row; margin-bottom: 4px;" bis_skin_checked="1"></div> 
                             <div id="row_color2" style="display:flex; flex-direction:row; margin-bottom: 8px;" bis_skin_checked="1"></div> 
                             <button onclick="socket.emit('command',{type:'color',param:document.getElementById('ccurl').value});  profileList[0].color=document.getElementById('ccurl').value; saveArray('profiles', profileList); ">submit CC</button> 
-                            &nbsp; &nbsp; &nbsp; <button onclick="window.open('https://catbox.moe');">Catbox</button> 
+                            &nbsp; &nbsp; &nbsp; <button onclick="window.open('https:catbox.moe');">Catbox</button> 
                             <hr style="border: 0; border-top: 1px dashed rgba(255,255,255,0.4); margin: 8px 0;"> 
                             Name:<br> 
                             <input type="text" placeholder="Username" id="usernameswap">
@@ -939,7 +939,7 @@ $(window).load(function(){
 	 ost.play();
 	 if(i < 2){$("#oobeplayback").css({"display":"block","left":newX,"width":newWidth.toString()+"px","height":newHeight.toString()+"px"});
 	 const originalSrc = './img/misc/oobe.gif';
-     oobeplayback.src=originalSrc + "?t=" + new Date().getTime();}//mozilla restores the last played gif frame before tab close????? blatantly fucking retarded
+     oobeplayback.src=originalSrc + "?t=" + new Date().getTime();}mozilla restores the last played gif frame before tab close????? blatantly fucking retarded
 	 };
 	 window.addEventListener('resize',()=>{if(smokeNmirrors)init();});
 	 
@@ -1771,9 +1771,7 @@ var animationPlayback = (animationData,playType) => {
         
    );}
 
-    $("#bworg").click(() => {
-      window.open("https://bonziworld.org","_blank");
-    });
+
   
   } 
   var update = (properties,reDraw=true) => {
@@ -2013,10 +2011,7 @@ var animationPlayback = (animationData,playType) => {
       "user-select": "auto"
     });
   }
-  // FIX: context menu no longer disappears.
-  //  - only one menu at a time (old ones removed up front)
-  //  - single outside-click closer instead of stacked jQuery handlers + body.onmouseup
-  //  - second item's id fixed (was a duplicate "_asshole")
+
   document.getElementById(localId).oncontextmenu = () => {
     $(".context_menu").remove();
     var parsetop = parseInt(document.getElementById(localId).style.top) + 50;
@@ -2055,7 +2050,6 @@ var animationPlayback = (animationData,playType) => {
 		$("#context_" + localId).remove();
 		document.removeEventListener('mousedown', closeMenu, true);
 	};
-	// defer so the mousedown that opened the menu doesn't immediately close it
 	setTimeout(() => document.addEventListener('mousedown', closeMenu, true), 0);
     return false;
   }
@@ -2136,7 +2130,6 @@ function resetUsers(userlist) {
     updateUsers();
 }
 let disconnectErr = true;
-// FIX: skip anything inside a context menu so unfuck() stops deleting menu items
 function unfuck(){
 	let destruction = [];
 	document.querySelectorAll('*').forEach(c => {
@@ -2448,7 +2441,6 @@ background: radial-gradient(circle, rgba(211, 181, 247, 1) 0%, rgba(174, 113, 25
 	});
     }
 setTimeout(unfuck,3000);
-// FIX: only ever create one unfuck interval (this handler re-runs on every reconnect)
 if(!window._unfuckInterval){
 	window._unfuckInterval = setInterval(unfuck,5000);
 }
@@ -2645,7 +2637,6 @@ socket.on("asshole", (data) => {
 
 let latestStocks = {};
 let myVehicle = null;
-//this can never drift from what the server actually offers/owns
 let vehicleClientPresets = {};
 socket.on('vehiclePresets', (data) => {
 	if(typeof data !== 'object' || data === null)return;
@@ -2670,7 +2661,7 @@ function notifyBonziCoin(text){
 	new Dialog({title:'BonziCOINS', width:400,height:300,html:`<img src='./img/desktop/icons/bonzicoin.gif' width='32' height='32'> <br> ${text}`});
 }
 
-// 12 gauge shotgun to the foot
+//12 gauge shotgun to the foot
 let bonziCoinsTabs = {
 	wallet:   { label:'Wallet',    render:function(){
 		if(!myWallet.hasAccount){
