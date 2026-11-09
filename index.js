@@ -117,7 +117,7 @@ function blankify(input, maxLength = 2500) {
     .normalize('NFKC')
     //strip control characters & zero-width chars (invisible payloads + RTL override tricks)
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B-\u200F\u2028\u2029\uFEFF]/g, '')
-    //rape whitespace
+    //fuck whitespace
     .trim()
     .replace(/[ \t]+/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
