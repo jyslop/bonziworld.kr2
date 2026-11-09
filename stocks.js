@@ -1023,7 +1023,7 @@ module.exports = {
         "amount": 1,
         "bonus": 0
       },
-      "fatnigger9000": {
+      "gassy9000": {
         "amount": 1,
         "bonus": 0.89
       }
